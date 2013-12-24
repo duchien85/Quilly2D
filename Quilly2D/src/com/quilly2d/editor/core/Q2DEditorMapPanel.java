@@ -86,8 +86,7 @@ public class Q2DEditorMapPanel extends JPanel
 
 		if (pencilSizeX > 0 && pencilSizeY > 0)
 		{
-			
-			
+
 			BufferedImage pencilImg = new BufferedImage(pencilSizeX * tileSize, pencilSizeY * tileSize, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = pencilImg.createGraphics();
 
@@ -114,12 +113,14 @@ public class Q2DEditorMapPanel extends JPanel
 	public void paintComponent(Graphics graphics)
 	{
 		super.paintComponent(graphics);
-		ImageIcon tileSet = Q2DEditor.INSTANCE.getTileSetImageIcon();
-		if (tileSet != null)
+		//TODO richtigen index übergeben
+		String tileSet = Q2DEditor.INSTANCE.getTileSet(0);
+		ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+		if (tileSetIcon != null)
 		{
 			//			graphics.drawImage(tileSet.getImage(), TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
-			drawGrid(graphics, tileSet);
-			drawPencil(graphics, tileSet);
+			drawGrid(graphics, tileSetIcon);
+			drawPencil(graphics, tileSetIcon);
 		}
 	}
 }

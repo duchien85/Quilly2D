@@ -2,32 +2,34 @@ package com.quilly2d.tools;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import com.quilly2d.editor.core.Q2DEditorSplitPane;
+import com.quilly2d.editor.core.Q2DWorld;
 
 public enum Q2DEditor
 {
 	INSTANCE;
 
 	// editor specific data
-	private int					startTileIndexX		= -1;
-	private int					startTileIndexY		= -1;
-	private int					finishTileIndexX	= -1;
-	private int					finishTileIndexY	= -1;
-	// map specific data
-	private String				mapName				= null;
-	private int					mapWidth			= 640;
-	private int					mapHeight			= 480;
-	private int					tileSize			= 32;
-	private int					numLayers			= 3;
-	private String				tileSetPath			= null;
-	private ImageIcon			tileSet				= null;
-	private String				musicPath			= null;
-	private Q2DEditorSplitPane	splitPane			= null;
+	private int						startTileIndexX			= -1;
+	private int						startTileIndexY			= -1;
+	private int						finishTileIndexX		= -1;
+	private int						finishTileIndexY		= -1;
+	private Q2DEditorSplitPane		splitPane				= null;
+	private Map<String, ImageIcon>	tileSetImageIcons		= new HashMap<String, ImageIcon>();
+	// world specific data
+	public static final String		DEFAULT_WORLD_NAME		= "Enter name";
+	private final int				DEFAULT_WORLD_WIDTH		= 800;
+	private final int				DEFAULT_WORLD_HEIGHT	= 600;
+	private final int				DEFAULT_WORLD_TILESIZE	= 32;
+	private final int				DEFAULT_NUM_LAYERS		= 3;
+	private Q2DWorld				world					= null;
 
 	public void setSelectionStartIndex(int x, int y)
 	{
@@ -55,103 +57,13 @@ public enum Q2DEditor
 		return finishTileIndexY;
 	}
 
-	public void setSelectionEndIndex(int x, int y)
+	public void setSelectionFinishIndex(int x, int y)
 	{
 		finishTileIndexX = x;
 		finishTileIndexY = y;
-		if (splitPane != null)
-			splitPane.repaint();
-	}
-
-	public String getMapName()
-	{
-		return mapName;
-	}
-
-	public void setMapName(String mapName)
-	{
-		this.mapName = mapName;
-	}
-
-	public int getMapWidth()
-	{
-		return mapWidth;
-	}
-
-	public void setMapWidth(int mapWidth)
-	{
-		this.mapWidth = mapWidth;
 
 		if (splitPane != null)
 			splitPane.repaint();
-	}
-
-	public int getMapHeight()
-	{
-		return mapHeight;
-	}
-
-	public void setMapHeight(int mapHeight)
-	{
-		this.mapHeight = mapHeight;
-
-		if (splitPane != null)
-			splitPane.repaint();
-	}
-
-	public int getTileSize()
-	{
-		return tileSize;
-	}
-
-	public void setTileSize(int tileSize)
-	{
-		this.tileSize = tileSize;
-
-		if (splitPane != null)
-			splitPane.repaint();
-	}
-
-	public int getNumLayers()
-	{
-		return numLayers;
-	}
-
-	public void setNumLayers(int numLayers)
-	{
-		this.numLayers = numLayers;
-
-		if (splitPane != null)
-			splitPane.repaint();
-	}
-
-	public String getTileSetPath()
-	{
-		return tileSetPath;
-	}
-
-	public ImageIcon getTileSetImageIcon()
-	{
-		return tileSet;
-	}
-
-	public void setTileSetPath(String tileSetPath)
-	{
-		this.tileSetPath = tileSetPath;
-		tileSet = new ImageIcon(this.getClass().getResource("/" + tileSetPath));
-
-		if (splitPane != null)
-			splitPane.repaint();
-	}
-
-	public String getMusicPath()
-	{
-		return musicPath;
-	}
-
-	public void setMusicPath(String musicPath)
-	{
-		this.musicPath = musicPath;
 	}
 
 	public Q2DEditorSplitPane getSplitPane()
@@ -164,17 +76,116 @@ public enum Q2DEditor
 		this.splitPane = splitPane;
 	}
 
+	public void initWorld(String name)
+	{
+		world = new Q2DWorld(name, DEFAULT_WORLD_WIDTH, DEFAULT_WORLD_HEIGHT, DEFAULT_NUM_LAYERS, DEFAULT_WORLD_TILESIZE);
+	}
+
+	public int getMapWidth()
+	{
+		return world.getMap().getMapWidth();
+	}
+
+	public void setMapWidth(int width)
+	{
+		world.getMap().setMapWidth(width);
+
+		if (splitPane != null)
+			splitPane.repaint();
+	}
+
+	public int getMapHeight()
+	{
+		return world.getMap().getMapHeight();
+	}
+
+	public void setMapHeight(int height)
+	{
+		world.getMap().setMapHeight(height);
+
+		if (splitPane != null)
+			splitPane.repaint();
+	}
+
+	public int getTileSize()
+	{
+		return world.getMap().getTileSize();
+	}
+
+	public void setTileSize(int tileSize)
+	{
+		world.getMap().setTileSize(tileSize);
+
+		if (splitPane != null)
+			splitPane.repaint();
+	}
+
+	public int getNumLayers()
+	{
+		return world.getMap().getNumLayers();
+	}
+
+	public void setNumLayers(int numLayers)
+	{
+		world.getMap().setNumLayers(numLayers);
+
+		if (splitPane != null)
+			splitPane.repaint();
+	}
+
+	public String getWorldName()
+	{
+		return world.getName();
+	}
+
+	public void setWorldName(String name)
+	{
+		world.setName(name);
+	}
+
+	public String getWorldBackgroundMusic()
+	{
+		return world.getBackgroundMusic();
+	}
+
+	public void setWorldBackgroundMusic(String musicPath)
+	{
+		world.setBackgroundMusic(musicPath);
+	}
+
+	public String getTileSet(int index)
+	{
+		return world.getTileSet(index);
+	}
+
+	public ImageIcon getTileSetImageIcon(String tileSet)
+	{
+		if (tileSetImageIcons.containsKey(tileSet))
+			return tileSetImageIcons.get(tileSet);
+		return null;
+	}
+
+	public void setTileSet(int index, String tileSet)
+	{
+		world.setTileSet(index, tileSet);
+		ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + tileSet));
+		tileSetImageIcons.put(tileSet, icon);
+
+		if (splitPane != null)
+			splitPane.repaint();
+	}
+
 	public static void main(String[] args)
 	{
 		try
 		{
+			Q2DEditor.INSTANCE.initWorld(DEFAULT_WORLD_NAME);
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-			JFrame frame = new JFrame("Editor");
+			JFrame frame = new JFrame("Q2DEditor");
 			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-			Q2DEditorSplitPane mainPane = new Q2DEditorSplitPane(Toolkit.getDefaultToolkit().getScreenSize());
-			Q2DEditor.INSTANCE.setSplitPane(mainPane);
-			frame.add(mainPane);
+			Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(Toolkit.getDefaultToolkit().getScreenSize()));
+			frame.add(Q2DEditor.INSTANCE.getSplitPane());
 
 			// center frame
 			frame.setLocationRelativeTo(null);

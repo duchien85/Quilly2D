@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -67,6 +69,35 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 
 		lblName = new JLabel("Name:");
 		txtName = createTextField();
+		String worldName = Q2DEditor.INSTANCE.getWorldName();
+		txtName.setText(worldName);
+		if (Q2DEditor.DEFAULT_WORLD_NAME.equals(worldName))
+		{
+			txtName.addFocusListener(new FocusListener() {
+
+				@Override
+				public void focusLost(FocusEvent event)
+				{
+					JTextField txt = (JTextField) event.getSource();
+					if (txt.getText().equals(""))
+					{
+						txt.setText(Q2DEditor.DEFAULT_WORLD_NAME);
+						txt.setForeground(Color.GRAY);
+					}
+				}
+
+				@Override
+				public void focusGained(FocusEvent event)
+				{
+					JTextField txt = (JTextField) event.getSource();
+					if (txt.getText().equals(Q2DEditor.DEFAULT_WORLD_NAME))
+					{
+						txt.setText("");
+						txt.setForeground(Color.BLACK);
+					}
+				}
+			});
+		}
 
 		lblWidth = new JLabel("Width:");
 		txtWidth = createTextField();
@@ -148,7 +179,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				{
 					if (txt.equals(txtName))
 					{
-						Q2DEditor.INSTANCE.setMapName(txtName.getText());
+						Q2DEditor.INSTANCE.setWorldName(txtName.getText());
 					}
 					else if (txt.equals(txtWidth))
 					{
@@ -210,13 +241,14 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 						path = path.substring(path.indexOf("resources") + "resources".length() + 1);
 						if (btn.equals(btnMusicPath))
 						{
-							Q2DEditor.INSTANCE.setMusicPath(path);
+							Q2DEditor.INSTANCE.setWorldBackgroundMusic(path);
 							lblMusicPath.setSize(150, lblTilesetPath.getHeight());
 							lblMusicPath.setText("Music: " + chooser.getSelectedFile().getName());
 						}
 						else
 						{
-							Q2DEditor.INSTANCE.setTileSetPath(path);
+							//TODO index bestimmen für tileSet
+							Q2DEditor.INSTANCE.setTileSet(0, path);
 							lblTilesetPath.setSize(150, lblTilesetPath.getHeight());
 							lblTilesetPath.setText("Tileset: " + chooser.getSelectedFile().getName());
 						}
@@ -265,7 +297,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 					// tilesize slider
 					Q2DEditor.INSTANCE.setTileSize(val);
 					Q2DEditor.INSTANCE.setSelectionStartIndex(-1, -1);
-					Q2DEditor.INSTANCE.setSelectionEndIndex(-1, -1);
+					Q2DEditor.INSTANCE.setSelectionFinishIndex(-1, -1);
 					selectedTiles.x = selectedTiles.y = selectedTiles.width = selectedTiles.height = -1;
 				}
 			}
@@ -304,11 +336,13 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	public void paintComponent(Graphics graphics)
 	{
 		super.paintComponent(graphics);
-		ImageIcon tileSet = Q2DEditor.INSTANCE.getTileSetImageIcon();
-		if (tileSet != null)
+		//TODO richtigen index übergeben
+		String tileSet = Q2DEditor.INSTANCE.getTileSet(0);
+		ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+		if (tileSetIcon != null)
 		{
-			graphics.drawImage(tileSet.getImage(), TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
-			drawGrid(graphics, tileSet);
+			graphics.drawImage(tileSetIcon.getImage(), TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
+			drawGrid(graphics, tileSetIcon);
 		}
 	}
 
@@ -362,12 +396,14 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		if (isSelectingTiles)
 		{
-			ImageIcon tileSet = Q2DEditor.INSTANCE.getTileSetImageIcon();
-			if (tileSet != null)
+			//TODO richtigen index übergeben
+			String tileSet = Q2DEditor.INSTANCE.getTileSet(0);
+			ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+			if (tileSetIcon != null)
 			{
 				final int tileSize = Q2DEditor.INSTANCE.getTileSize();
-				final int maxY = new Double(Math.ceil(1.0 * tileSet.getIconHeight() / tileSize)).intValue();
-				final int maxX = new Double(Math.ceil(1.0 * tileSet.getIconWidth() / tileSize)).intValue();
+				final int maxY = new Double(Math.ceil(1.0 * tileSetIcon.getIconHeight() / tileSize)).intValue();
+				final int maxX = new Double(Math.ceil(1.0 * tileSetIcon.getIconWidth() / tileSize)).intValue();
 
 				int startTileIndexX = selectionStartIndexX;
 				int startTileIndexY = selectionStartIndexY;
@@ -398,7 +434,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				if (selectedTiles.x >= 0 && selectedTiles.x <= maxX && selectedTiles.width >= 0 && selectedTiles.width <= maxX && selectedTiles.y >= 0 && selectedTiles.y <= maxY && selectedTiles.height >= 0 && selectedTiles.height <= maxY)
 				{
 					Q2DEditor.INSTANCE.setSelectionStartIndex(selectedTiles.x, selectedTiles.y);
-					Q2DEditor.INSTANCE.setSelectionEndIndex(selectedTiles.width, selectedTiles.height);
+					Q2DEditor.INSTANCE.setSelectionFinishIndex(selectedTiles.width, selectedTiles.height);
 				}
 			}
 		}
