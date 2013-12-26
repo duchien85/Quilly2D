@@ -1,15 +1,15 @@
 package com.quilly2d.editor.core;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class Q2DMap
 {
-	private int									numLayers	= 0;
-	private int									width		= 0;
-	private int									height		= 0;
-	private int									tileSize	= 0;
-	private Map<Integer, Map<Integer, Q2DTile>>	tiles		= null;
+	private int													numLayers	= 0;
+	private int													width		= 0;
+	private int													height		= 0;
+	private int													tileSize	= 0;
+	private Map<Integer, Map<Integer, Map<Integer, Q2DTile>>>	tiles		= null;
 
 	public Q2DMap(int width, int height, int numLayers, int tileSize)
 	{
@@ -17,7 +17,7 @@ public class Q2DMap
 		this.setMapHeight(height);
 		this.setNumLayers(numLayers);
 		this.setTileSize(tileSize);
-		tiles = new HashMap<Integer, Map<Integer, Q2DTile>>();
+		tiles = new TreeMap<Integer, Map<Integer, Map<Integer, Q2DTile>>>();
 	}
 
 	public int getMapWidth()
@@ -60,28 +60,41 @@ public class Q2DMap
 		this.tileSize = tileSize;
 	}
 
-	public Q2DTile getTile(int indexX, int indexY)
+	public Q2DTile getTile(int indexX, int indexY, int layer)
 	{
 		if (tiles.containsKey(indexX))
 		{
-			Map<Integer, Q2DTile> map = tiles.get(indexX);
+			Map<Integer, Map<Integer, Q2DTile>> map = tiles.get(indexX);
 			if (map.containsKey(indexY))
-				return map.get(indexY);
+			{
+				Map<Integer, Q2DTile> map2 = map.get(indexY);
+				if (map2.containsKey(layer))
+					return map2.get(layer);
+			}
 		}
 		return null;
 	}
 
 	public void setTile(Q2DTile tile)
 	{
-		Map<Integer, Q2DTile> map = null;
+		Map<Integer, Map<Integer, Q2DTile>> map = null;
 		if (tiles.containsKey(tile.getIndexX()))
 			map = tiles.get(tile.getIndexX());
 		else
 		{
-			map = new HashMap<Integer, Q2DTile>();
+			map = new TreeMap<Integer, Map<Integer, Q2DTile>>();
 			tiles.put(tile.getIndexX(), map);
 		}
 
-		map.put(tile.getIndexY(), tile);
+		Map<Integer, Q2DTile> result = null;
+		if (map.containsKey(tile.getIndexY()))
+			result = map.get(tile.getIndexY());
+		else
+		{
+			result = new TreeMap<Integer, Q2DTile>();
+			map.put(tile.getIndexY(), result);
+		}
+
+		result.put(tile.getLayer(), tile);
 	}
 }
