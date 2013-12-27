@@ -10,6 +10,8 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -37,7 +39,7 @@ import com.quilly2d.editor.enums.Q2DPencilMode;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
-public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, MouseMotionListener
+public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, MouseMotionListener, PropertyChangeListener
 {
 	private static final int	TILESET_OFFSET_X	= 15;
 	private static final int	TILESET_OFFSET_Y	= 288;
@@ -350,9 +352,12 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 						if (i < val)
 							btnSelectTileset.get(i).setEnabled(true);
 						else
+						{
+							if (btnSelectTileset.get(i).isSelected())
+								btnSelectTileset.get(0).setSelected(true);
 							btnSelectTileset.get(i).setEnabled(false);
+						}
 					}
-					btnSelectTileset.get(0).setSelected(true);
 				}
 			}
 
@@ -415,6 +420,9 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void mousePressed(MouseEvent e)
 	{
+		if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ANIMATION || Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.COLLISION)
+			return;
+
 		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
 		ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
 		if (tileSetIcon != null)
@@ -450,7 +458,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void mouseDragged(MouseEvent e)
 	{
-		if (Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ADVANCED)
+		if (Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ADVANCED && Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ANIMATION && Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ANIMATION)
 		{
 			if (isSelectingTiles)
 			{
@@ -475,5 +483,25 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void mouseMoved(MouseEvent e)
 	{
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt)
+	{
+	}
+
+	public void onPencilPaste()
+	{
+		sliderTileSize.setEnabled(false);
+		sliderNumLayers.setMinimum(sliderNumLayers.getValue());
+		Hashtable<Integer, Object> labelTable = new Hashtable<Integer, Object>();
+		labelTable.put(new Integer(sliderNumLayers.getMinimum()), new JLabel("" + sliderNumLayers.getMinimum()));
+		labelTable.put(new Integer(sliderNumLayers.getMaximum()), new JLabel("" + sliderNumLayers.getMaximum()));
+		sliderNumLayers.setLabelTable(labelTable);
+		sliderNumTilesets.setMinimum(sliderNumTilesets.getValue());
+		labelTable = new Hashtable<Integer, Object>();
+		labelTable.put(new Integer(sliderNumTilesets.getMinimum()), new JLabel("" + sliderNumTilesets.getMinimum()));
+		labelTable.put(new Integer(sliderNumTilesets.getMaximum()), new JLabel("" + sliderNumTilesets.getMaximum()));
+		sliderNumTilesets.setLabelTable(labelTable);
 	}
 }

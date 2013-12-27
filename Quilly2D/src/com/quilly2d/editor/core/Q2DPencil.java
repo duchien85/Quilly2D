@@ -61,7 +61,7 @@ public class Q2DPencil
 		return -1;
 	}
 
-	public int getTileIndexX(int indexX, int indexY)
+	public double getTileIndexX(int indexX, int indexY)
 	{
 		if (indexMap.containsKey(indexX))
 		{
@@ -72,7 +72,7 @@ public class Q2DPencil
 		return -1;
 	}
 
-	public int getTileIndexY(int indexX, int indexY)
+	public double getTileIndexY(int indexX, int indexY)
 	{
 		if (indexMap.containsKey(indexX))
 		{
@@ -83,7 +83,7 @@ public class Q2DPencil
 		return -1;
 	}
 
-	public void setTileIndex(int indexX, int indexY, int tileIndex, int tileIndexX, int tileIndexY)
+	public void setTileIndex(int indexX, int indexY, int tileIndex, double tileIndexX, double tileIndexY)
 	{
 		if (indexMap.containsKey(indexX))
 		{
@@ -137,18 +137,13 @@ public class Q2DPencil
 						TileIndex tileIndex = indexMap.get(x).get(y);
 						if (tileIndex.X != -1 && tileIndex.Y != -1)
 						{
+							String tileSet = null;
 							if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
-							{
-								String tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
-								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-								g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
-							}
+								tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
 							else
-							{
-								String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-								g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
-							}
+								tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+							ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+							g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
 						}
 					}
 				}
@@ -180,8 +175,10 @@ public class Q2DPencil
 				maxY = maxY - offsetY;
 			else
 				maxY = height - offsetY;
-			graphics.fillRect(offsetX, offsetY, maxX, maxY);
-
+			if (Q2DEditor.INSTANCE.isGroundTextureModeEnabled())
+				graphics.fillRect(offsetX, offsetY, Q2DEditor.INSTANCE.getTileSize(), Q2DEditor.INSTANCE.getTileSize());
+			else
+				graphics.fillRect(offsetX, offsetY, maxX, maxY);
 			graphics.setColor(currentColor);
 		}
 	}
@@ -202,7 +199,7 @@ public class Q2DPencil
 					TileIndex tileIndex = map.get(y);
 					if (tileIndex.X != -1 && tileIndex.Y != -1 && (Q2DEditor.INSTANCE.getCurrentTileSetIndex() == tileIndex.TILESET_INDEX || tileIndex.TILESET_INDEX == -1))
 					{
-						graphics.fillRect(offsetX + tileIndex.X * tileSize, offsetY + tileIndex.Y * tileSize, tileSize, tileSize);
+						graphics.fillRect((int) (offsetX + tileIndex.X * tileSize), (int) (offsetY + tileIndex.Y * tileSize), tileSize, tileSize);
 					}
 				}
 			}
@@ -213,8 +210,8 @@ public class Q2DPencil
 
 	private class TileIndex
 	{
-		public int	X				= -1;
-		public int	Y				= -1;
-		public int	TILESET_INDEX	= -1;
+		public double	X				= -1;
+		public double	Y				= -1;
+		public int		TILESET_INDEX	= -1;
 	}
 }

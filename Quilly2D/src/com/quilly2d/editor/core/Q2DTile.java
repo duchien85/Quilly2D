@@ -6,8 +6,8 @@ public class Q2DTile
 	private int		indexY				= 0;
 	private int		layer				= 0;
 	private int		tileIndex			= -1;
-	private int		tileIndexX			= -1;
-	private int		tileIndexY			= -1;
+	private double	tileIndexX			= -1;
+	private double	tileIndexY			= -1;
 	private boolean	hasCollision		= false;
 	private boolean	hasAnimation		= false;
 	// attributes below are only used for animated tiles
@@ -58,22 +58,22 @@ public class Q2DTile
 		this.tileIndex = tileIndex;
 	}
 
-	public int getTileIndexX()
+	public double getTileIndexX()
 	{
 		return tileIndexX;
 	}
 
-	public void setTileIndexX(int tileIndexX)
+	public void setTileIndexX(double tileIndexX)
 	{
 		this.tileIndexX = tileIndexX;
 	}
 
-	public int getTileIndexY()
+	public double getTileIndexY()
 	{
 		return tileIndexY;
 	}
 
-	public void setTileIndexY(int tileIndexY)
+	public void setTileIndexY(double tileIndexY)
 	{
 		this.tileIndexY = tileIndexY;
 	}

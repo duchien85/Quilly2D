@@ -1,12 +1,16 @@
 package com.quilly2d.editor.core;
 
 import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
+import com.quilly2d.tools.Q2DEditor;
+
 @SuppressWarnings("serial")
-public class Q2DEditorSplitPane extends JSplitPane
+public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeListener
 {
 	private JScrollPane				leftScrollPane	= null;
 	private Q2DEditorTilesetPanel	tilesetPanel	= null;
@@ -29,20 +33,21 @@ public class Q2DEditorSplitPane extends JSplitPane
 		setLeftComponent(leftScrollPane);
 		setRightComponent(rightScrollPane);
 		setResizeWeight(0.33);
+
+		Q2DEditor.INSTANCE.addPropertyChangeListener(this);
+		Q2DEditor.INSTANCE.addPropertyChangeListener(tilesetPanel);
+		Q2DEditor.INSTANCE.addPropertyChangeListener(mapPanel);
 	}
 
-	public void updateNumLayers(int numLayers)
+	public void onPencilPaste()
 	{
-		mapPanel.updateNumLayers(numLayers);
+		tilesetPanel.onPencilPaste();
 	}
 
-	public void updateTileSize(int tileSize)
+	@Override
+	public void propertyChange(PropertyChangeEvent evt)
 	{
-		mapPanel.updateTileSize(tileSize);
-	}
-
-	public void updatePencilSize(int sizeX, int sizeY)
-	{
-		mapPanel.updatePencilSize(sizeX, sizeY);
+		tilesetPanel.repaint();
+		mapPanel.repaint();
 	}
 }
