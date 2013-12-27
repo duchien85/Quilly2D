@@ -33,6 +33,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.quilly2d.editor.enums.Q2DPencilMode;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
@@ -222,7 +223,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				}
 				catch (NumberFormatException e)
 				{
-					JOptionPane.showMessageDialog(Q2DEditorTilesetPanel.this, "You must enter a correct numeric value for \"width\" and \"height\"", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(txtWidth, "You must enter a correct numeric value for \"width\" and \"height\"", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run()
@@ -255,7 +256,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				else
 					filter = new FileNameExtensionFilter("*.jpg; *.png", "jpg", "png");
 				chooser.setFileFilter(filter);
-				int returnVal = chooser.showOpenDialog(Q2DEditorTilesetPanel.this);
+				int returnVal = chooser.showOpenDialog(lblTilesetPath);
 				if (returnVal == JFileChooser.APPROVE_OPTION)
 				{
 					File file = chooser.getSelectedFile();
@@ -279,7 +280,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 					}
 					else
 					{
-						JOptionPane.showMessageDialog(Q2DEditorTilesetPanel.this, "You must select a file from the \"resources\" folder of the project", "Wrong file location", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(lblTilesetPath, "You must select a file from the \"resources\" folder of the project", "Wrong file location", JOptionPane.ERROR_MESSAGE);
 					}
 
 				}
@@ -305,7 +306,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				else
 					lblTilesetPath.setText("Tileset: ");
 
-				if (!Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+				if (Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ADVANCED)
 					resetPencil();
 			}
 		});
@@ -423,7 +424,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 
 			if (e.getX() >= TILESET_OFFSET_X && e.getX() < maxX && e.getY() >= TILESET_OFFSET_Y && e.getY() < maxY)
 			{
-				if (Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+				if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
 				{
 					int indexX = (e.getX() - TILESET_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
 					int indexY = (e.getY() - TILESET_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
@@ -449,7 +450,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void mouseDragged(MouseEvent e)
 	{
-		if (!Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+		if (Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ADVANCED)
 		{
 			if (isSelectingTiles)
 			{

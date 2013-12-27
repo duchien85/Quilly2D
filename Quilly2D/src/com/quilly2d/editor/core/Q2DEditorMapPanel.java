@@ -3,6 +3,7 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -15,6 +16,7 @@ import java.util.List;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,6 +27,8 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.quilly2d.editor.enums.Q2DPencilMode;
+import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
@@ -43,7 +47,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	private JRadioButton		btnPencilNormal			= null;
 	private JRadioButton		btnPencilAnimation		= null;
 	private JRadioButton		btnPencilCollision		= null;
-	private JRadioButton		btnPencilClear			= null;
+	private JCheckBox			btnPencilFill			= null;
 	private JRadioButton		btnPencilAdvanced		= null;
 	private JSlider				sliderPencilSize		= null;
 	private JLabel				lblLayer				= null;
@@ -69,14 +73,21 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		btnPencilNormal.setSelected(true);
 		btnPencilAnimation = createPencilButton("Animation");
 		btnPencilCollision = createPencilButton("Collision");
-		btnPencilClear = createPencilButton("Clear");
 		btnPencilAdvanced = createPencilButton("Advanced");
 		ButtonGroup groupPencil = new ButtonGroup();
 		groupPencil.add(btnPencilNormal);
 		groupPencil.add(btnPencilAnimation);
 		groupPencil.add(btnPencilCollision);
-		groupPencil.add(btnPencilClear);
 		groupPencil.add(btnPencilAdvanced);
+		btnPencilFill = new JCheckBox("Fill");
+		btnPencilFill.setBackground(Color.WHITE);
+		btnPencilFill.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event)
+			{
+				Q2DEditor.INSTANCE.setFillModeEnabled(btnPencilFill.isSelected());
+			}
+		});
 		sliderPencilSize = createSlider(1, 10, 1, 1.0);
 		lblPencilSize.setEnabled(false);
 		sliderPencilSize.setEnabled(false);
@@ -99,8 +110,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		addComponent(btnPencilNormal, 300, 30);
 		addComponent(btnPencilAnimation, 300, 60);
 		addComponent(btnPencilCollision, 300, 90);
-		addComponent(btnPencilClear, 300, 120);
-		addComponent(btnPencilAdvanced, 300, 150);
+		addComponent(btnPencilAdvanced, 300, 120);
+		addComponent(btnPencilFill, 300, 150);
 		addComponent(lblPencilSize, 300, 180);
 		addComponent(sliderPencilSize, 300, 200);
 
@@ -120,6 +131,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			comp.setSize(200, 20);
 		else if (comp instanceof JSlider)
 			comp.setSize(200, 55);
+		else if (comp instanceof JCheckBox)
+			comp.setSize(100, 20);
 		else if (comp instanceof JRadioButton)
 		{
 			for (int i = 0; i < btnSelectLayer.size(); ++i)
@@ -136,13 +149,13 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			comp.setSize(70, 20);
 	}
 
-	private JRadioButton createLayerSelectionButton(final int tileSet)
+	private JRadioButton createLayerSelectionButton(final int layer)
 	{
 		JRadioButton btn = null;
-		if (tileSet == -1)
+		if (layer == -1)
 			btn = new JRadioButton("All");
 		else
-			btn = new JRadioButton("" + (tileSet + 1));
+			btn = new JRadioButton("" + (layer + 1));
 		btn.setBackground(Color.WHITE);
 		btn.addActionListener(new ActionListener() {
 
@@ -151,14 +164,10 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			{
 				JRadioButton source = (JRadioButton) event.getSource();
 				if (source.equals(btnShowAllLayer))
-				{
-					//TODO show all layers -> disable painting
-				}
+					Q2DEditor.INSTANCE.setCurrentLayer(-1);
 				else
-				{
-					Q2DEditor.INSTANCE.setCurrentLayer(tileSet);
-					//TODO repaint map preview
-				}
+					Q2DEditor.INSTANCE.setCurrentLayer(layer);
+				repaint();
 			}
 		});
 
@@ -175,20 +184,40 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			public void actionPerformed(ActionEvent event)
 			{
 				JRadioButton source = (JRadioButton) event.getSource();
-				//TODO add logic
 				if (source.equals(btnPencilAdvanced))
 				{
 					lblPencilSize.setEnabled(true);
 					sliderPencilSize.setEnabled(true);
-					Q2DEditor.INSTANCE.setAdvancedPencilModeActive(true);
+					Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.ADVANCED);
 					resetPencil(sliderPencilSize.getValue());
 				}
 				else
 				{
 					lblPencilSize.setEnabled(false);
 					sliderPencilSize.setEnabled(false);
-					Q2DEditor.INSTANCE.setAdvancedPencilModeActive(false);
 					resetPencil(1);
+
+					if (source.equals(btnPencilNormal))
+						Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.NORMAL);
+					else if (source.equals(btnPencilAnimation))
+					{
+						Q2DAnimationDialog dialog = new Q2DAnimationDialog();
+						if (dialog.getAnimationPath() != null)
+						{
+							// animated sprite was selected
+							Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.ANIMATION);
+							Q2DEditor.INSTANCE.setPencilSize(dialog.getAnimationWidth() / Q2DEditor.INSTANCE.getTileSize(), dialog.getAnimationHeight() / Q2DEditor.INSTANCE.getTileSize());
+							Q2DEditor.INSTANCE.setAnimationData(dialog.getAnimationPath(), dialog.getAnimationWidth(), dialog.getAnimationHeight(), dialog.getNumColumns(), dialog.getNumRows(), dialog.getAnimationsPerSecond());
+						}
+						else
+						{
+							// dialog canceled
+							Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.NORMAL);
+							btnPencilNormal.setSelected(true);
+						}
+					}
+					else if (source.equals(btnPencilCollision))
+						Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.COLLISION);
 				}
 			}
 		});
@@ -221,7 +250,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 				if (size > PENCIL_PREVIEW_SIZE_X)
 				{
 					slider.setValue(slider.getMinimum());
-					JOptionPane.showMessageDialog(Q2DEditorMapPanel.this, "The current tilesize does not allow a bigger advanced pencil.", "Wrong pencil size", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(slider, "The current tilesize does not allow a bigger advanced pencil.", "Wrong pencil size", JOptionPane.ERROR_MESSAGE);
 				}
 				else
 				{
@@ -272,18 +301,34 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			{
 				for (int x = 0; x < maxX; ++x)
 				{
-					Q2DTile mapTile = Q2DEditor.INSTANCE.getMapTile(x, y, z);
-					if (mapTile != null && mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
+					if (Q2DEditor.INSTANCE.getCurrentLayer() == -1 || z == Q2DEditor.INSTANCE.getCurrentLayer())
 					{
-						String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-						ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-						int drawX = MAP_OFFSET_X + x * tileSize;
-						int drawY = MAP_OFFSET_Y + y * tileSize;
-						int srcX = mapTile.getTileIndexX() * tileSize;
-						int srcY = mapTile.getTileIndexY() * tileSize;
-						graphics.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, srcX, srcY, srcX + tileSize, srcY + tileSize, null);
+						Q2DTile mapTile = Q2DEditor.INSTANCE.getMapTile(x, y, z);
+						if (mapTile != null)
+						{
+							int drawX = MAP_OFFSET_X + x * tileSize;
+							int drawY = MAP_OFFSET_Y + y * tileSize;
+							if (mapTile.isHasAnimation())
+							{
+								// animated tile
+								int fps = mapTile.getAnimationsPerSecond();
+								int width = mapTile.getWidth();
+								int height = mapTile.getHeight();
+								Q2DSprite sprite = Q2DEditor.INSTANCE.getAnimation(mapTile.getAnimationSpritePath(), width, height, fps);
+								sprite.paint((Graphics2D) graphics, -drawX, -drawY);
+							}
+							else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
+							{
+								String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
+								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+
+								int srcX = mapTile.getTileIndexX() * tileSize;
+								int srcY = mapTile.getTileIndexY() * tileSize;
+								graphics.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, srcX, srcY, srcX + tileSize, srcY + tileSize, null);
+							}
+						}
+						graphics.drawRect(MAP_OFFSET_X + x * tileSize, MAP_OFFSET_Y + y * tileSize, tileSize, tileSize);
 					}
-					graphics.drawRect(MAP_OFFSET_X + x * tileSize, MAP_OFFSET_Y + y * tileSize, tileSize, tileSize);
 				}
 			}
 	}
@@ -310,7 +355,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			int indexY = (mouseY - MAP_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
 			Q2DEditor.INSTANCE.drawPencilSelection(graphics, MAP_OFFSET_X + indexX * Q2DEditor.INSTANCE.getTileSize(), MAP_OFFSET_Y + indexY * Q2DEditor.INSTANCE.getTileSize(), maxX, maxY);
 		}
-		if (Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+		if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
 		{
 			// draw pencil grid
 			for (int y = 0; y < sliderPencilSize.getValue(); ++y)
@@ -383,7 +428,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	@Override
 	public void mousePressed(MouseEvent event)
 	{
-		if (Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+		if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
 		{
 			final int maxX = PENCIL_PREVIEW_OFFSET_X + Q2DEditor.INSTANCE.getTileSize() * sliderPencilSize.getValue();
 			final int maxY = PENCIL_PREVIEW_OFFSET_Y + Q2DEditor.INSTANCE.getTileSize() * sliderPencilSize.getValue();
@@ -393,7 +438,6 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 				int indexX = (mouseX - PENCIL_PREVIEW_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
 				int indexY = (mouseY - PENCIL_PREVIEW_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
 				Q2DEditor.INSTANCE.setPencilIndex(indexX, indexY);
-				repaint();
 			}
 		}
 
@@ -406,8 +450,9 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
 			int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
 			Q2DEditor.INSTANCE.pastePencil(indexX, indexY);
-			repaint();
 		}
+
+		repaint();
 	}
 
 	@Override

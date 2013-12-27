@@ -13,8 +13,8 @@ public class Q2DTile
 	// attributes below are only used for animated tiles
 	private String	animationSpritePath	= null;
 	private int		animationsPerSecond	= 0;
-	private int		frameWidth			= 0;
-	private int		frameHeight			= 0;
+	private int		width				= 0;
+	private int		height				= 0;
 	private int		numColumns			= 0;
 	private int		numRows				= 0;
 
@@ -118,24 +118,24 @@ public class Q2DTile
 		this.animationsPerSecond = animationsPerSecond;
 	}
 
-	public int getFrameWidth()
+	public int getWidth()
 	{
-		return frameWidth;
+		return width;
 	}
 
-	public void setFrameWidth(int frameWidth)
+	public void setWidth(int frameWidth)
 	{
-		this.frameWidth = frameWidth;
+		this.width = frameWidth;
 	}
 
-	public int getFrameHeight()
+	public int getHeight()
 	{
-		return frameHeight;
+		return height;
 	}
 
-	public void setFrameHeight(int frameHeight)
+	public void setHeight(int frameHeight)
 	{
-		this.frameHeight = frameHeight;
+		this.height = frameHeight;
 	}
 
 	public int getNumColumns()

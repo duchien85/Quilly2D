@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -13,30 +15,42 @@ import com.quilly2d.editor.core.Q2DEditorSplitPane;
 import com.quilly2d.editor.core.Q2DPencil;
 import com.quilly2d.editor.core.Q2DTile;
 import com.quilly2d.editor.core.Q2DWorld;
+import com.quilly2d.editor.enums.Q2DPencilMode;
+import com.quilly2d.graphics.Q2DSprite;
 
 public enum Q2DEditor
 {
 	INSTANCE;
 
 	// editor specific data
-	private Q2DEditorSplitPane		splitPane					= null;
-	private Map<String, ImageIcon>	tileSetImageIcons			= new HashMap<String, ImageIcon>();
-	private int						currentTileIndex			= 0;
-	private int						currentLayer				= 0;
-	private Q2DPencil				pencil						= new Q2DPencil();
-	private boolean					isAdvancedPencilModeActive	= false;
-	private int						currentPencilIndexX			= -1;
-	private int						currentPencilIndexY			= -1;
+	private Q2DEditorSplitPane		splitPane				= null;
+	private Map<String, ImageIcon>	tileSetImageIcons		= new HashMap<String, ImageIcon>();
+	private int						currentTileIndex		= 0;
+	private int						currentLayer			= 0;
+	private Q2DPencil				pencil					= new Q2DPencil();
+	private Q2DPencilMode			pencilMode				= Q2DPencilMode.NORMAL;
+	private boolean					isFillModeActive		= false;
+	private int						currentPencilIndexX		= -1;
+	private int						currentPencilIndexY		= -1;
 	// world specific data
-	public static final String		DEFAULT_WORLD_NAME			= "Enter name";
-	public static final int			MAX_NUM_LAYERS				= 6;
-	public static final int			MAX_MAP_WIDTH				= 6400;
-	public static final int			MAX_MAP_HEIGHT				= 6400;
-	private final int				DEFAULT_WORLD_WIDTH			= 25 * 32;
-	private final int				DEFAULT_WORLD_HEIGHT		= 20 * 32;
-	private final int				DEFAULT_WORLD_TILESIZE		= 32;
-	private final int				DEFAULT_NUM_LAYERS			= 3;
-	private Q2DWorld				world						= null;
+	public static final String		DEFAULT_WORLD_NAME		= "Enter name";
+	public static final int			MAX_NUM_LAYERS			= 6;
+	public static final int			MAX_MAP_WIDTH			= 500 * 32;
+	public static final int			MAX_MAP_HEIGHT			= 500 * 32;
+	private final int				DEFAULT_WORLD_WIDTH		= 25 * 32;
+	private final int				DEFAULT_WORLD_HEIGHT	= 20 * 32;
+	private final int				DEFAULT_WORLD_TILESIZE	= 32;
+	private final int				DEFAULT_NUM_LAYERS		= 3;
+	private Q2DWorld				world					= null;
+	// animation specific data
+	public static final int			FRAMES_PER_SECOND		= 50;
+	private String					animationSpritePath		= null;
+	private int						animationsPerSecond		= 0;
+	private int						animationWidth			= 0;
+	private int						animationHeight			= 0;
+	private int						animationNumColumns		= 0;
+	private int						animationNumRows		= 0;
+	private Map<String, Q2DSprite>	animations				= new HashMap<String, Q2DSprite>();
 
 	public void initPencilSelection(int tileIndexX, int tileIndexY)
 	{
@@ -253,14 +267,24 @@ public enum Q2DEditor
 		pencil.drawSelection(graphics, offsetX, offsetY, maxX, maxY);
 	}
 
-	public boolean isAdvancedPencilModeActive()
+	public Q2DPencilMode getPencilMode()
 	{
-		return isAdvancedPencilModeActive;
+		return pencilMode;
 	}
 
-	public void setAdvancedPencilModeActive(boolean active)
+	public void setPencilMode(Q2DPencilMode newMode)
 	{
-		this.isAdvancedPencilModeActive = active;
+		pencilMode = newMode;
+	}
+
+	public boolean isFillModeEnabled()
+	{
+		return isFillModeActive;
+	}
+
+	public void setFillModeEnabled(boolean enable)
+	{
+		this.isFillModeActive = enable;
 	}
 
 	public int getPencilIndexX()
@@ -279,7 +303,7 @@ public enum Q2DEditor
 		currentPencilIndexY = indexY;
 	}
 
-	public void pastePencil(int indexX, int indexY)
+	private void initMapTilesFromPencil(int leftIndex, int topIndex)
 	{
 		for (int x = 0; x < pencil.getSizeX(); x++)
 		{
@@ -290,11 +314,11 @@ public enum Q2DEditor
 				int tileIndexY = pencil.getTileIndexY(x, y);
 				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
 				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				if (tileIndexX != -1 && tileIndexY != -1 && (indexX + x) < maxX && (indexY + y) < maxY)
+				if (tileIndexX != -1 && tileIndexY != -1 && (leftIndex + x) < maxX && (topIndex + y) < maxY)
 				{
 					Q2DTile tile = new Q2DTile();
-					tile.setIndexX(indexX + x);
-					tile.setIndexY(indexY + y);
+					tile.setIndexX(leftIndex + x);
+					tile.setIndexY(topIndex + y);
 					tile.setLayer(currentLayer);
 					tile.setTileIndexX(tileIndexX);
 					tile.setTileIndexY(tileIndexY);
@@ -303,6 +327,115 @@ public enum Q2DEditor
 				}
 			}
 		}
+	}
+
+	public void pastePencil(int indexX, int indexY)
+	{
+		if (currentLayer == -1)
+			return;
+
+		switch (pencilMode)
+		{
+		case NORMAL:
+		case ADVANCED:
+			if (isFillModeActive)
+			{
+				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				for (int x = 0; x < maxX; x += pencil.getSizeX())
+					for (int y = 0; y < maxY; y += pencil.getSizeY())
+						initMapTilesFromPencil(x, y);
+			}
+			else
+				initMapTilesFromPencil(indexX, indexY);
+			break;
+		case COLLISION:
+			break;
+		case ANIMATION:
+			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+			int sizeX = animationWidth / getTileSize() - 1;
+			int sizeY = animationWidth / getTileSize() - 1;
+			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+			{
+				Q2DTile tile = new Q2DTile();
+				tile.setIndexX(indexX);
+				tile.setIndexY(indexY);
+				tile.setLayer(currentLayer);
+				tile.setAnimationSpritePath(animationSpritePath);
+				tile.setNumColumns(animationNumColumns);
+				tile.setNumRows(animationNumRows);
+				tile.setAnimationsPerSecond(animationsPerSecond);
+				tile.setWidth(animationWidth);
+				tile.setHeight(animationHeight);
+				tile.setHasAnimation(true);
+				world.getMap().setTile(tile);
+			}
+			break;
+		}
+	}
+
+	public void setAnimationData(String path, int width, int height, int numColumns, int numRows, int fps)
+	{
+		animationSpritePath = path;
+		animationsPerSecond = fps;
+		animationWidth = width;
+		animationHeight = height;
+		animationNumColumns = numColumns;
+		animationNumRows = numRows;
+
+		ImageIcon animation = new ImageIcon(this.getClass().getResource("/" + path));
+		if (!animations.containsKey(path + "#" + width + "#" + height + "#" + fps))
+		{
+			Q2DSprite sprite = new Q2DSprite(animation.getImage(), animation.getIconWidth(), animation.getIconHeight(), numColumns, numRows, fps, 0);
+			sprite.setSize(width, height);
+			animations.put(path + "#" + width + "#" + height + "#" + fps, sprite);
+		}
+	}
+
+	public String getCurrentAnimationPath()
+	{
+		return animationSpritePath;
+	}
+
+	public int getCurrentAnimationWidth()
+	{
+		return animationWidth;
+	}
+
+	public int getCurrentAnimationHeight()
+	{
+		return animationHeight;
+	}
+
+	public int getCurrentAnimationFPS()
+	{
+		return animationsPerSecond;
+	}
+
+	public Q2DSprite getAnimation(String path, int width, int height, int fps)
+	{
+		if (animations.containsKey(path + "#" + width + "#" + height + "#" + fps))
+			return animations.get(path + "#" + width + "#" + height + "#" + fps);
+		return null;
+	}
+
+	private void initAnimationTimer()
+	{
+		Timer timer = new Timer(true);
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run()
+			{
+				if (animations.size() > 0)
+				{
+					for (Q2DSprite sprite : animations.values())
+						sprite.update(1000.0 / Q2DEditor.FRAMES_PER_SECOND * 0.001);
+					if (splitPane != null)
+						splitPane.repaint();
+				}
+			}
+		}, 0, 1000 / FRAMES_PER_SECOND);
 	}
 
 	public static void main(String[] args)
@@ -326,6 +459,8 @@ public enum Q2DEditor
 
 			frame.setMinimumSize(new Dimension(800, 600));
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+			Q2DEditor.INSTANCE.initAnimationTimer();
 		}
 		catch (Exception e)
 		{

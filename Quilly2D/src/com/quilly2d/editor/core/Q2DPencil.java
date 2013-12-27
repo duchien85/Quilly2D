@@ -9,6 +9,8 @@ import java.util.TreeMap;
 
 import javax.swing.ImageIcon;
 
+import com.quilly2d.editor.enums.Q2DPencilMode;
+import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.tools.Q2DEditor;
 
 public class Q2DPencil
@@ -115,38 +117,45 @@ public class Q2DPencil
 	{
 		if (sizeX != 0 && sizeY != 0)
 		{
-			int tileSize = Q2DEditor.INSTANCE.getTileSize();
-			BufferedImage pencilImg = new BufferedImage(sizeX * tileSize, sizeY * tileSize, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g2 = pencilImg.createGraphics();
-			g2.setColor(Color.BLACK);
-
-			for (int x = 0; x < sizeX; ++x)
+			if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ANIMATION)
 			{
-				for (int y = 0; y < sizeY; ++y)
+				Q2DSprite animation = Q2DEditor.INSTANCE.getAnimation(Q2DEditor.INSTANCE.getCurrentAnimationPath(), Q2DEditor.INSTANCE.getCurrentAnimationWidth(), Q2DEditor.INSTANCE.getCurrentAnimationHeight(), Q2DEditor.INSTANCE.getCurrentAnimationFPS());
+				animation.paint((Graphics2D) graphics, -offsetX, -offsetY);
+			}
+			else
+			{
+				int tileSize = Q2DEditor.INSTANCE.getTileSize();
+				BufferedImage pencilImg = new BufferedImage(sizeX * tileSize, sizeY * tileSize, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D g2 = pencilImg.createGraphics();
+				g2.setColor(Color.BLACK);
+				for (int x = 0; x < sizeX; ++x)
 				{
-					int drawX = x * tileSize;
-					int drawY = y * tileSize;
-					TileIndex tileIndex = indexMap.get(x).get(y);
-					if (tileIndex.X != -1 && tileIndex.Y != -1)
+					for (int y = 0; y < sizeY; ++y)
 					{
-						if (Q2DEditor.INSTANCE.isAdvancedPencilModeActive())
+						int drawX = x * tileSize;
+						int drawY = y * tileSize;
+						TileIndex tileIndex = indexMap.get(x).get(y);
+						if (tileIndex.X != -1 && tileIndex.Y != -1)
 						{
-							String tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
-							ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-							g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
-						}
-						else
-						{
-							String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-							ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-							g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
+							if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
+							{
+								String tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
+								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+								g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
+							}
+							else
+							{
+								String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+								g2.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, tileIndex.X * tileSize, tileIndex.Y * tileSize, (tileIndex.X + 1) * tileSize, (tileIndex.Y + 1) * tileSize, null);
+							}
 						}
 					}
 				}
-			}
 
-			g2.dispose();
-			graphics.drawImage(pencilImg, offsetX, offsetY, Math.min(previewSizeX, pencilImg.getWidth()), Math.min(previewSizeY, pencilImg.getHeight()), null);
+				g2.dispose();
+				graphics.drawImage(pencilImg, offsetX, offsetY, Math.min(previewSizeX, pencilImg.getWidth()), Math.min(previewSizeY, pencilImg.getHeight()), null);
+			}
 
 		}
 
