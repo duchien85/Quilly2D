@@ -1,6 +1,9 @@
 package com.quilly2d.editor.core;
 
 import java.awt.Dimension;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -37,6 +40,33 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 		Q2DEditor.INSTANCE.addPropertyChangeListener(this);
 		Q2DEditor.INSTANCE.addPropertyChangeListener(tilesetPanel);
 		Q2DEditor.INSTANCE.addPropertyChangeListener(mapPanel);
+
+		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+		manager.addKeyEventDispatcher(new KeyEventDispatcher()
+		{
+			@Override
+			public boolean dispatchKeyEvent(KeyEvent event)
+			{
+				if (event.getID() == KeyEvent.KEY_PRESSED && event.isControlDown())
+				{
+					switch (event.getKeyCode())
+					{
+						case KeyEvent.VK_0:
+						case KeyEvent.VK_1:
+						case KeyEvent.VK_2:
+						case KeyEvent.VK_3:
+						case KeyEvent.VK_4:
+						case KeyEvent.VK_5:
+						case KeyEvent.VK_6:
+							int layer = event.getKeyCode() - 49;
+							if (layer < Q2DEditor.INSTANCE.getNumLayers())
+								Q2DEditor.INSTANCE.setCurrentLayer(layer);
+							break;
+					}
+				}
+				return false;
+			}
+		});
 	}
 
 	public void onPencilPaste()

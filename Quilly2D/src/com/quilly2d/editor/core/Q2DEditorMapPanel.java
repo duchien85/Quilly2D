@@ -1,5 +1,6 @@
 package com.quilly2d.editor.core;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -86,7 +87,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		groupPencil.add(btnPencilAdvanced);
 		btnPencilFill = new JCheckBox("Fill");
 		btnPencilFill.setBackground(Color.WHITE);
-		btnPencilFill.addActionListener(new ActionListener() {
+		btnPencilFill.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent event)
 			{
@@ -96,11 +98,15 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		btnPencilGroundTexture = new JCheckBox("Ground Texture");
 		btnPencilGroundTexture.setBackground(Color.WHITE);
 		btnPencilGroundTexture.setEnabled(false);
-		btnPencilGroundTexture.addActionListener(new ActionListener() {
+		btnPencilGroundTexture.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent event)
 			{
-				Q2DEditor.INSTANCE.setGroundTextureModeEnabled(btnPencilGroundTexture.isSelected());
+				boolean isSelected = btnPencilGroundTexture.isSelected();
+				Q2DEditor.INSTANCE.setGroundTextureModeEnabled(isSelected);
+				btnPencilFill.setEnabled(!isSelected);
+				btnPencilFill.setSelected(false);
 			}
 		});
 		sliderPencilSize = createSlider(1, PENCIL_PREVIEW_SIZE_X / Q2DEditor.INSTANCE.getTileSize(), 1, 1.0);
@@ -132,10 +138,10 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		addComponent(lblPencilSize, 300, 180);
 		addComponent(sliderPencilSize, 300, 200);
 
-		addComponent(lblLayer, 660, 5);
+		addComponent(lblLayer, 540, 5);
 		for (int i = 0; i < btnSelectLayer.size(); ++i)
-			addComponent(btnSelectLayer.get(i), 660 + i * 60, 30);
-		addComponent(btnShowAllLayer, 660 + btnSelectLayer.size() * 60, 30);
+			addComponent(btnSelectLayer.get(i), 540 + i * 60, 30);
+		addComponent(btnShowAllLayer, 540 + btnSelectLayer.size() * 60, 30);
 	}
 
 	private void addComponent(JComponent comp, int x, int y)
@@ -174,7 +180,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		else
 			btn = new JRadioButton("" + (layer + 1));
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -219,7 +226,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	{
 		JRadioButton btn = new JRadioButton(name);
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -282,7 +290,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		slider.setPaintLabels(true);
 		slider.setBackground(Color.WHITE);
 
-		slider.addChangeListener(new ChangeListener() {
+		slider.addChangeListener(new ChangeListener()
+		{
 			@Override
 			public void stateChanged(ChangeEvent event)
 			{
@@ -323,38 +332,41 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			{
 				for (int x = 0; x < maxX; ++x)
 				{
-					if (Q2DEditor.INSTANCE.getCurrentLayer() == -1 || z == Q2DEditor.INSTANCE.getCurrentLayer())
-					{
-						Q2DTile mapTile = Q2DEditor.INSTANCE.getMapTile(x, y, z);
-						if (mapTile != null)
-						{
-							int drawX = MAP_OFFSET_X + x * tileSize;
-							int drawY = MAP_OFFSET_Y + y * tileSize;
-							if (mapTile.isHasAnimation())
-							{
-								// animated tile
-								int fps = mapTile.getAnimationsPerSecond();
-								int width = mapTile.getWidth();
-								int height = mapTile.getHeight();
-								Q2DSprite sprite = Q2DEditor.INSTANCE.getAnimation(mapTile.getAnimationSpritePath(), width, height, fps);
-								sprite.paint((Graphics2D) graphics, -drawX, -drawY);
-							}
-							else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
-							{
-								String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-								ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+					if (Q2DEditor.INSTANCE.getCurrentLayer() != -1 && z != Q2DEditor.INSTANCE.getCurrentLayer())
+						((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+					else
+						((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
-								double srcX = mapTile.getTileIndexX() * tileSize;
-								double srcY = mapTile.getTileIndexY() * tileSize;
-								graphics.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
-							}
-							if (mapTile.isHasCollision())
-							{
-								Color currentColor = graphics.getColor();
-								graphics.setColor(new Color(180, 0, 0, 128));
-								graphics.fillRect(drawX, drawY, tileSize, tileSize);
-								graphics.setColor(currentColor);
-							}
+					Q2DTile mapTile = Q2DEditor.INSTANCE.getMapTile(x, y, z);
+					if (mapTile != null)
+					{
+						int drawX = MAP_OFFSET_X + x * tileSize;
+						int drawY = MAP_OFFSET_Y + y * tileSize;
+						if (mapTile.isHasAnimation())
+						{
+							// animated tile
+							int fps = mapTile.getAnimationsPerSecond();
+							int width = mapTile.getWidth();
+							int height = mapTile.getHeight();
+							Q2DSprite sprite = Q2DEditor.INSTANCE.getAnimation(mapTile.getAnimationSpritePath(), width, height, fps);
+							sprite.paint((Graphics2D) graphics, -drawX, -drawY);
+						}
+						else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
+						{
+							String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
+							ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+
+							double srcX = mapTile.getTileIndexX() * tileSize;
+							double srcY = mapTile.getTileIndexY() * tileSize;
+							graphics.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
+						}
+						if (mapTile.isHasCollision())
+						{
+							((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+							Color currentColor = graphics.getColor();
+							graphics.setColor(new Color(180, 0, 0, 150));
+							graphics.fillRect(drawX, drawY, tileSize, tileSize);
+							graphics.setColor(currentColor);
 						}
 					}
 				}
@@ -440,7 +452,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			{
 				int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
 				int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
-				//Q2DEditor.INSTANCE.pasteGroundTexturePencil(groundTextureStartIndexX, groundTextureStartIndexY, indexX, indexY);
+				// Q2DEditor.INSTANCE.pasteGroundTexturePencil(groundTextureStartIndexX, groundTextureStartIndexY, indexX, indexY);
 				Q2DEditor.INSTANCE.pasteGroundTexturePencil(indexX, indexY, groundTextureStartIndexX, groundTextureStartIndexY);
 			}
 			else
@@ -545,10 +557,12 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		}
 		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_PENCIL_SIZE_X) || evt.getPropertyName().equals(Q2DEditor.PROPERTY_PENCIL_SIZE_Y))
 		{
-			SwingUtilities.invokeLater(new Runnable() {
+			SwingUtilities.invokeLater(new Runnable()
+			{
 				@Override
 				public void run()
 				{
+					btnPencilFill.setEnabled(true);
 					if (Q2DEditor.INSTANCE.getPencilSizeX() == 2 && Q2DEditor.INSTANCE.getPencilSizeY() == 2 && Q2DEditor.INSTANCE.getPencilMode() != Q2DPencilMode.ADVANCED)
 						btnPencilGroundTexture.setEnabled(true);
 					else
@@ -560,7 +574,14 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 				}
 			});
 
-			//			sliderPencilSize.setValue((int) evt.getNewValue());
+			// sliderPencilSize.setValue((int) evt.getNewValue());
+		}
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_CURRENT_LAYER))
+		{
+			if ((int) evt.getNewValue() == -1)
+				btnShowAllLayer.setSelected(true);
+			else
+				btnSelectLayer.get((int) evt.getNewValue()).setSelected(true);
 		}
 	}
 }

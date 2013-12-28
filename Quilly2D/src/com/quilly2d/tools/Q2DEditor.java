@@ -35,6 +35,7 @@ public enum Q2DEditor
 	public static final String		PROPERTY_MAP_WIDTH				= "mapWidth";
 	public static final String		PROPERTY_MAP_HEIGHT				= "mapHeight";
 	public static final String		PROPERTY_TILESET				= "tileSet";
+	public static final String		PROPERTY_CURRENT_LAYER			= "currentLayer";
 	private Q2DEditorSplitPane		splitPane						= null;
 	private Map<String, ImageIcon>	tileSetImageIcons				= new HashMap<String, ImageIcon>();
 	private int						currentTileIndex				= 0;
@@ -147,6 +148,7 @@ public enum Q2DEditor
 
 	public void setCurrentLayer(int layer)
 	{
+		propChangeSupport.firePropertyChange(PROPERTY_CURRENT_LAYER, currentLayer, layer);
 		currentLayer = layer;
 	}
 
@@ -397,7 +399,7 @@ public enum Q2DEditor
 				}
 				else if (y > startY && y < endY && x == startX)
 				{
-					// left column 
+					// left column
 					tile.setTileIndexX(tileIndexX);
 					tile.setTileIndexY(tileIndexY + 0.5);
 				}
@@ -450,63 +452,63 @@ public enum Q2DEditor
 
 		switch (pencilMode)
 		{
-		case NORMAL:
-		case ADVANCED:
-			if (isFillModeActive)
-			{
-				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-				for (int x = 0; x < maxX; x += pencil.getSizeX())
-					for (int y = 0; y < maxY; y += pencil.getSizeY())
-						initMapTilesFromPencil(x, y);
-			}
-			else
-				initMapTilesFromPencil(indexX, indexY);
-			break;
-		case COLLISION:
-			for (int x = 0; x < pencil.getSizeX(); ++x)
-				for (int y = 0; y < pencil.getSizeY(); ++y)
+			case NORMAL:
+			case ADVANCED:
+				if (isFillModeActive)
 				{
-					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
 					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-					if ((indexX + x) < maxX && (indexY + y) < maxY)
-					{
-						Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
-						if (result == null)
-						{
-							result = new Q2DTile();
-							result.setIndexX(indexX + x);
-							result.setIndexY(indexY + y);
-							result.setLayer(currentLayer);
-						}
-						result.setHasCollision(true);
-						world.getMap().setTile(result);
-					}
+					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+					for (int x = 0; x < maxX; x += pencil.getSizeX())
+						for (int y = 0; y < maxY; y += pencil.getSizeY())
+							initMapTilesFromPencil(x, y);
 				}
-			break;
-		case ANIMATION:
-			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-			int sizeX = animationWidth / getTileSize() - 1;
-			int sizeY = animationWidth / getTileSize() - 1;
-			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
-			{
-				Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
-				if (tile == null)
-					tile = new Q2DTile();
-				tile.setIndexX(indexX);
-				tile.setIndexY(indexY);
-				tile.setLayer(currentLayer);
-				tile.setAnimationSpritePath(animationSpritePath);
-				tile.setNumColumns(animationNumColumns);
-				tile.setNumRows(animationNumRows);
-				tile.setAnimationsPerSecond(animationsPerSecond);
-				tile.setWidth(animationWidth);
-				tile.setHeight(animationHeight);
-				tile.setHasAnimation(true);
-				world.getMap().setTile(tile);
-			}
-			break;
+				else
+					initMapTilesFromPencil(indexX, indexY);
+				break;
+			case COLLISION:
+				for (int x = 0; x < pencil.getSizeX(); ++x)
+					for (int y = 0; y < pencil.getSizeY(); ++y)
+					{
+						int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+						int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+						if ((indexX + x) < maxX && (indexY + y) < maxY)
+						{
+							Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
+							if (result == null)
+							{
+								result = new Q2DTile();
+								result.setIndexX(indexX + x);
+								result.setIndexY(indexY + y);
+								result.setLayer(currentLayer);
+							}
+							result.setHasCollision(true);
+							world.getMap().setTile(result);
+						}
+					}
+				break;
+			case ANIMATION:
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+				int sizeX = animationWidth / getTileSize() - 1;
+				int sizeY = animationWidth / getTileSize() - 1;
+				if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+				{
+					Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
+					if (tile == null)
+						tile = new Q2DTile();
+					tile.setIndexX(indexX);
+					tile.setIndexY(indexY);
+					tile.setLayer(currentLayer);
+					tile.setAnimationSpritePath(animationSpritePath);
+					tile.setNumColumns(animationNumColumns);
+					tile.setNumRows(animationNumRows);
+					tile.setAnimationsPerSecond(animationsPerSecond);
+					tile.setWidth(animationWidth);
+					tile.setHeight(animationHeight);
+					tile.setHasAnimation(true);
+					world.getMap().setTile(tile);
+				}
+				break;
 		}
 
 		splitPane.onPencilPaste();
@@ -560,7 +562,8 @@ public enum Q2DEditor
 	private void initAnimationTimer()
 	{
 		Timer timer = new Timer(true);
-		timer.schedule(new TimerTask() {
+		timer.schedule(new TimerTask()
+		{
 			@Override
 			public void run()
 			{
@@ -589,7 +592,7 @@ public enum Q2DEditor
 
 			JFrame frame = new JFrame("Q2DEditor");
 			frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-			//Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(Toolkit.getDefaultToolkit().getScreenSize()));
+			// Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(Toolkit.getDefaultToolkit().getScreenSize()));
 			Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(MAX_MAP_WIDTH, MAX_MAP_HEIGHT));
 			frame.add(Q2DEditor.INSTANCE.getSplitPane());
 
@@ -597,7 +600,7 @@ public enum Q2DEditor
 			frame.setLocationRelativeTo(null);
 
 			frame.setVisible(true);
-			//setResizable(false);
+			// setResizable(false);
 
 			frame.setMinimumSize(new Dimension(800, 600));
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
