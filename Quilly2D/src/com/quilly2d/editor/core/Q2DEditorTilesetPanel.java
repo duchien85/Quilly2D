@@ -3,6 +3,7 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -18,7 +19,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -378,11 +378,11 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		Q2DEditor.INSTANCE.setPencilSize(1, 1);
 	}
 
-	private void drawGrid(Graphics graphics, ImageIcon tileSet)
+	private void drawGrid(Graphics graphics, Image img)
 	{
 		final int tileSize = Q2DEditor.INSTANCE.getTileSize();
-		final int maxY = new Double(Math.ceil(1.0 * tileSet.getIconHeight() / tileSize)).intValue();
-		final int maxX = new Double(Math.ceil(1.0 * tileSet.getIconWidth() / tileSize)).intValue();
+		final int maxY = new Double(Math.ceil(1.0 * img.getHeight(null) / tileSize)).intValue();
+		final int maxX = new Double(Math.ceil(1.0 * img.getWidth(null) / tileSize)).intValue();
 		graphics.setColor(Color.DARK_GRAY);
 		for (int y = 0; y < maxY; ++y)
 		{
@@ -400,11 +400,11 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		super.paintComponent(graphics);
 		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-		if (tileSetIcon != null)
+		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		if (img != null)
 		{
-			graphics.drawImage(tileSetIcon.getImage(), TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
-			drawGrid(graphics, tileSetIcon);
+			graphics.drawImage(img, TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
+			drawGrid(graphics, img);
 		}
 	}
 
@@ -431,26 +431,33 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			return;
 
 		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-		if (tileSetIcon != null)
+		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		if (img != null)
 		{
-			final int maxX = tileSetIcon.getIconWidth() + TILESET_OFFSET_X;
-			final int maxY = tileSetIcon.getIconHeight() + TILESET_OFFSET_Y;
+			final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
+			final int maxY = img.getHeight(null) + TILESET_OFFSET_Y;
 
 			if (e.getX() >= TILESET_OFFSET_X && e.getX() < maxX && e.getY() >= TILESET_OFFSET_Y && e.getY() < maxY)
 			{
-				if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
+				if (e.isControlDown())
 				{
-					int indexX = (e.getX() - TILESET_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
-					int indexY = (e.getY() - TILESET_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
-					Q2DEditor.INSTANCE.setPencilTilesetIndex(indexX, indexY);
+					Q2DEditor.INSTANCE.setAlphaColor(tileSet, e.getX() - TILESET_OFFSET_X, e.getY() - TILESET_OFFSET_Y);
 				}
 				else
 				{
-					isSelectingTiles = true;
-					startIndexX = (e.getX() - TILESET_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
-					startIndexY = (e.getY() - TILESET_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
-					Q2DEditor.INSTANCE.initPencilSelection(startIndexX, startIndexY);
+					if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
+					{
+						int indexX = (e.getX() - TILESET_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
+						int indexY = (e.getY() - TILESET_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
+						Q2DEditor.INSTANCE.setPencilTilesetIndex(indexX, indexY);
+					}
+					else
+					{
+						isSelectingTiles = true;
+						startIndexX = (e.getX() - TILESET_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
+						startIndexY = (e.getY() - TILESET_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
+						Q2DEditor.INSTANCE.initPencilSelection(startIndexX, startIndexY);
+					}
 				}
 			}
 		}
@@ -470,11 +477,11 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			if (isSelectingTiles)
 			{
 				String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-				ImageIcon tileSetIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
-				if (tileSetIcon != null)
+				Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+				if (img != null)
 				{
-					final int maxX = tileSetIcon.getIconWidth() + TILESET_OFFSET_X;
-					final int maxY = tileSetIcon.getIconHeight() + TILESET_OFFSET_Y;
+					final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
+					final int maxY = img.getHeight(null) + TILESET_OFFSET_Y;
 
 					if (e.getX() >= TILESET_OFFSET_X && e.getX() < maxX && e.getY() >= TILESET_OFFSET_Y && e.getY() < maxY)
 					{

@@ -17,6 +17,15 @@ public class Q2DWorld
 		map = new Q2DMap(width, height, numLayers, tileSize);
 	}
 
+	public Q2DWorld(Q2DWorld toCopy)
+	{
+		name = toCopy.name;
+		tileSets = new ArrayList<String>();
+		for (String tileset : toCopy.tileSets)
+			tileSets.add(tileset);
+		map = new Q2DMap(toCopy.map);
+	}
+
 	public String getName()
 	{
 		return name;

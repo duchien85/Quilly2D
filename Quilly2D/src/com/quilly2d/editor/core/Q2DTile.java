@@ -18,6 +18,29 @@ public class Q2DTile
 	private int		numColumns			= 0;
 	private int		numRows				= 0;
 
+	public Q2DTile()
+	{
+
+	}
+
+	public Q2DTile(Q2DTile toCopy)
+	{
+		indexX = toCopy.indexX;
+		indexY = toCopy.indexY;
+		layer = toCopy.layer;
+		tileIndex = toCopy.tileIndex;
+		tileIndexX = toCopy.tileIndexX;
+		tileIndexY = toCopy.tileIndexY;
+		hasCollision = toCopy.hasCollision;
+		hasAnimation = toCopy.hasAnimation;
+		animationSpritePath = toCopy.animationSpritePath;
+		animationsPerSecond = toCopy.animationsPerSecond;
+		width = toCopy.width;
+		height = toCopy.height;
+		numColumns = toCopy.numColumns;
+		numRows = toCopy.numRows;
+	}
+
 	public int getIndexX()
 	{
 		return indexX;

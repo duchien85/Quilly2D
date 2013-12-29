@@ -1,10 +1,23 @@
 package com.quilly2d.tools;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,7 +50,7 @@ public enum Q2DEditor
 	public static final String		PROPERTY_TILESET				= "tileSet";
 	public static final String		PROPERTY_CURRENT_LAYER			= "currentLayer";
 	private Q2DEditorSplitPane		splitPane						= null;
-	private Map<String, ImageIcon>	tileSetImageIcons				= new HashMap<String, ImageIcon>();
+	private Map<String, Image>		tileSetImages					= new HashMap<String, Image>();
 	private int						currentTileIndex				= 0;
 	private int						currentLayer					= 0;
 	private Q2DPencil				pencil							= new Q2DPencil();
@@ -47,6 +60,8 @@ public enum Q2DEditor
 	private int						currentPencilIndexX				= -1;
 	private int						currentPencilIndexY				= -1;
 	private PropertyChangeSupport	propChangeSupport				= new PropertyChangeSupport(this);
+	public static final int			MAX_STEPS_TO_BE_REMEMBERED		= 200;
+	List<Q2DWorld>					history							= new ArrayList<Q2DWorld>();
 	// world specific data
 	public static final String		DEFAULT_WORLD_NAME				= "Enter name";
 	public static final int			MAX_NUM_LAYERS					= 6;
@@ -70,8 +85,8 @@ public enum Q2DEditor
 	public void initPencilSelection(int tileIndexX, int tileIndexY)
 	{
 		String tileSet = getTileSet(getCurrentTileSetIndex());
-		ImageIcon tileSetIcon = getTileSetImageIcon(tileSet);
-		if (tileSetIcon != null)
+		Image img = getTileSetImage(tileSet);
+		if (img != null)
 		{
 			propChangeSupport.firePropertyChange(PROPERTY_PENCIL_TILE_INDEX_X, pencil.getTileIndexX(0, 0), tileIndexX);
 			propChangeSupport.firePropertyChange(PROPERTY_PENCIL_TILE_INDEX_Y, pencil.getTileIndexY(0, 0), tileIndexY);
@@ -233,11 +248,61 @@ public enum Q2DEditor
 		return world.getTileSet(index);
 	}
 
-	public ImageIcon getTileSetImageIcon(String tileSet)
+	public Image getTileSetImage(String tileSet)
 	{
-		if (tileSetImageIcons.containsKey(tileSet))
-			return tileSetImageIcons.get(tileSet);
+		if (tileSetImages.containsKey(tileSet))
+			return tileSetImages.get(tileSet);
 		return null;
+	}
+
+	private Image makeColorTransparent(BufferedImage im, final Color color)
+	{
+		ImageFilter filter = new RGBImageFilter() {
+			public int	markerRGB	= color.getRGB() | 0xFF000000;
+
+			public final int filterRGB(int x, int y, int rgb)
+			{
+				if ((rgb | 0xFF000000) == markerRGB)
+					// make pixel of specified color transparent
+					return 0x00FFFFFF & rgb;
+				else
+					return rgb;
+			}
+		};
+
+		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+		return Toolkit.getDefaultToolkit().createImage(ip);
+	}
+
+	private BufferedImage imageToBufferedImage(Image image)
+	{
+		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+		// check if image is already optimized
+		if (image instanceof BufferedImage && ((BufferedImage) image).getColorModel().equals(gfx_config.getColorModel()))
+			return (BufferedImage) image;
+
+		BufferedImage new_image = gfx_config.createCompatibleImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+		g2.drawImage(image, 0, 0, null);
+		g2.dispose();
+
+		return new_image;
+	}
+
+	public void setAlphaColor(String tileset, int posX, int posY)
+	{
+		BufferedImage img = (BufferedImage) getTileSetImage(tileset + "_original");
+		if (img == null)
+		{
+			img = (BufferedImage) getTileSetImage(tileset);
+			tileSetImages.put(tileset + "_original", img);
+		}
+		int rgb = img.getRGB(posX, posY);
+		img = imageToBufferedImage(makeColorTransparent(img, new Color(rgb)));
+		tileSetImages.put(tileset, img);
+		if (splitPane != null)
+			splitPane.repaint();
 	}
 
 	public void setTileSet(int index, String tileSet)
@@ -245,7 +310,7 @@ public enum Q2DEditor
 		propChangeSupport.firePropertyChange(PROPERTY_TILESET, index, tileSet);
 		world.setTileSet(index, tileSet);
 		ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + tileSet));
-		tileSetImageIcons.put(tileSet, icon);
+		tileSetImages.put(tileSet, imageToBufferedImage(icon.getImage()));
 	}
 
 	public void setPencilSize(int sizeX, int sizeY)
@@ -365,10 +430,12 @@ public enum Q2DEditor
 		}
 	}
 
-	public void pasteGroundTexturePencil(int startIndexX, int startIndexY, int endIndexX, int endIndexY)
+	public boolean pasteGroundTexturePencil(int startIndexX, int startIndexY, int endIndexX, int endIndexY)
 	{
 		if (startIndexX == endIndexX || startIndexY == endIndexY)
-			return;
+			return false;
+
+		addNewWorldVersion();
 
 		int tileIndex = pencil.getTilesetIndex(0, 0);
 		double tileIndexX = pencil.getTileIndexX(0, 0);
@@ -445,12 +512,16 @@ public enum Q2DEditor
 				world.getMap().setTile(tile);
 			}
 		}
+
+		return true;
 	}
 
 	public void pastePencil(int indexX, int indexY)
 	{
 		if (currentLayer == -1)
 			return;
+
+		addNewWorldVersion();
 
 		switch (pencilMode)
 		{
@@ -518,6 +589,8 @@ public enum Q2DEditor
 
 	public void deletePencil(int leftIndex, int topIndex)
 	{
+		addNewWorldVersion();
+
 		for (int x = 0; x < pencil.getSizeX(); ++x)
 			for (int y = 0; y < pencil.getSizeY(); ++y)
 			{
@@ -539,6 +612,25 @@ public enum Q2DEditor
 
 		if (splitPane != null)
 			splitPane.repaint();
+	}
+
+	public void addNewWorldVersion()
+	{
+		if (history.size() > MAX_STEPS_TO_BE_REMEMBERED)
+			history.remove(0);
+		history.add(world);
+		world = new Q2DWorld(world);
+	}
+
+	public void setPreviousWorldVersion()
+	{
+		if (history.size() > 0)
+		{
+			world = history.get(history.size() - 1);
+			history.remove(history.size() - 1);
+			if (splitPane != null)
+				splitPane.repaint();
+		}
 	}
 
 	public void setAnimationData(String path, int width, int height, int numColumns, int numRows, int fps)

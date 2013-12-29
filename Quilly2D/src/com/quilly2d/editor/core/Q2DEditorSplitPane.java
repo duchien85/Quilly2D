@@ -65,6 +65,9 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 						if (mapPanel.getCurrentMapPencilIndexX() != -1 && mapPanel.getCurrentMapPencilIndexY() != -1)
 							Q2DEditor.INSTANCE.deletePencil(mapPanel.getCurrentMapPencilIndexX(), mapPanel.getCurrentMapPencilIndexY());
 						break;
+					case KeyEvent.VK_Z:
+						Q2DEditor.INSTANCE.setPreviousWorldVersion();
+						break;
 					}
 				}
 				return false;

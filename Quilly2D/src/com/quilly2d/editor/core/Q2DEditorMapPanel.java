@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -17,7 +18,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -59,6 +59,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	private JRadioButton		btnShowAllLayer				= null;
 	private int					mouseX						= -1;
 	private int					mouseY						= -1;
+	private int					lastIndexX					= -1;
+	private int					lastIndexY					= -1;
 	private int					groundTextureStartIndexX	= -1;
 	private int					groundTextureStartIndexY	= -1;
 
@@ -350,11 +352,11 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 						else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
 						{
 							String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-							ImageIcon imgIcon = Q2DEditor.INSTANCE.getTileSetImageIcon(tileSet);
+							Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
 
 							double srcX = mapTile.getTileIndexX() * tileSize;
 							double srcY = mapTile.getTileIndexY() * tileSize;
-							graphics.drawImage(imgIcon.getImage(), drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
+							graphics.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
 						}
 						if (mapTile.isHasCollision())
 						{
@@ -474,18 +476,16 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 
 		if (mouseX >= MAP_OFFSET_X && mouseX < maxX && mouseY >= MAP_OFFSET_Y && mouseY < maxY)
 		{
-			if (Q2DEditor.INSTANCE.isGroundTextureModeEnabled())
+			int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
+			int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
+			if (lastIndexX != indexX || lastIndexY != indexY)
 			{
-				int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
-				int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
-				// Q2DEditor.INSTANCE.pasteGroundTexturePencil(groundTextureStartIndexX, groundTextureStartIndexY, indexX, indexY);
-				Q2DEditor.INSTANCE.pasteGroundTexturePencil(indexX, indexY, groundTextureStartIndexX, groundTextureStartIndexY);
-			}
-			else
-			{
-				int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
-				int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
-				Q2DEditor.INSTANCE.pastePencil(indexX, indexY);
+				lastIndexX = indexX;
+				lastIndexY = indexY;
+				if (Q2DEditor.INSTANCE.isGroundTextureModeEnabled())
+					Q2DEditor.INSTANCE.pasteGroundTexturePencil(indexX, indexY, groundTextureStartIndexX, groundTextureStartIndexY);
+				else
+					Q2DEditor.INSTANCE.pastePencil(indexX, indexY);
 			}
 			repaint();
 		}
@@ -536,15 +536,15 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 
 		if (mouseX >= MAP_OFFSET_X && mouseX < maxX && mouseY >= MAP_OFFSET_Y && mouseY < maxY)
 		{
-			int indexX = (mouseX - MAP_OFFSET_X) / tileSize;
-			int indexY = (mouseY - MAP_OFFSET_Y) / tileSize;
+			lastIndexX = (mouseX - MAP_OFFSET_X) / tileSize;
+			lastIndexY = (mouseY - MAP_OFFSET_Y) / tileSize;
 			if (Q2DEditor.INSTANCE.isGroundTextureModeEnabled())
 			{
-				groundTextureStartIndexX = indexX;
-				groundTextureStartIndexY = indexY;
+				groundTextureStartIndexX = lastIndexX;
+				groundTextureStartIndexY = lastIndexY;
 			}
 			else
-				Q2DEditor.INSTANCE.pastePencil(indexX, indexY);
+				Q2DEditor.INSTANCE.pastePencil(lastIndexX, lastIndexY);
 		}
 
 		repaint();

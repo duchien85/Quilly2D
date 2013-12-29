@@ -20,6 +20,39 @@ public class Q2DMap
 		tiles = new TreeMap<Integer, Map<Integer, Map<Integer, Q2DTile>>>();
 	}
 
+	public Q2DMap(Q2DMap toCopy)
+	{
+		this(toCopy.width, toCopy.height, toCopy.numLayers, toCopy.tileSize);
+		for (Integer key1 : toCopy.tiles.keySet())
+		{
+			for (Integer key2 : toCopy.tiles.get(key1).keySet())
+			{
+				for (Integer key3 : toCopy.tiles.get(key1).get(key2).keySet())
+				{
+					Map<Integer, Map<Integer, Q2DTile>> map1 = null;
+					if (tiles.containsKey(key1))
+						map1 = tiles.get(key1);
+					else
+					{
+						map1 = new TreeMap<Integer, Map<Integer, Q2DTile>>();
+						tiles.put(key1, map1);
+					}
+
+					Map<Integer, Q2DTile> map2 = null;
+					if (map1.containsKey(key2))
+						map2 = map1.get(key2);
+					else
+					{
+						map2 = new TreeMap<Integer, Q2DTile>();
+						map1.put(key2, map2);
+					}
+
+					map2.put(key3, new Q2DTile(toCopy.tiles.get(key1).get(key2).get(key3)));
+				}
+			}
+		}
+	}
+
 	public int getMapWidth()
 	{
 		return width;
