@@ -323,6 +323,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		int maxX = new Double(Math.ceil(1.0 * Q2DEditor.INSTANCE.getMapWidth() / tileSize)).intValue();
 		graphics.setColor(Color.DARK_GRAY);
 		for (int z = 0; z < Q2DEditor.INSTANCE.getNumLayers(); ++z)
+		{
 			for (int y = 0; y < maxY; ++y)
 			{
 				for (int x = 0; x < maxX; ++x)
@@ -366,6 +367,9 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 					}
 				}
 			}
+		}
+
+		((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 	}
 
 	private void drawGrid(Graphics graphics)
