@@ -80,33 +80,6 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		txtName = createTextField();
 		String worldName = Q2DEditor.INSTANCE.getWorldName();
 		txtName.setText(worldName);
-		if (Q2DEditor.DEFAULT_WORLD_NAME.equals(worldName))
-		{
-			txtName.addFocusListener(new FocusListener() {
-
-				@Override
-				public void focusLost(FocusEvent event)
-				{
-					JTextField txt = (JTextField) event.getSource();
-					if (txt.getText().equals(""))
-					{
-						txt.setText(Q2DEditor.DEFAULT_WORLD_NAME);
-						txt.setForeground(Color.GRAY);
-					}
-				}
-
-				@Override
-				public void focusGained(FocusEvent event)
-				{
-					JTextField txt = (JTextField) event.getSource();
-					if (txt.getText().equals(Q2DEditor.DEFAULT_WORLD_NAME))
-					{
-						txt.setText("");
-						txt.setForeground(Color.BLACK);
-					}
-				}
-			});
-		}
 
 		lblWidth = new JLabel("Width:");
 		txtWidth = createTextField();
@@ -236,6 +209,40 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 								txtHeight.setText("" + Q2DEditor.INSTANCE.getMapHeight());
 						}
 					});
+				}
+			}
+		});
+
+		txt.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent event)
+			{
+				JTextField txt = (JTextField) event.getSource();
+				if (txt.equals(txtName))
+				{
+					if (txt.getText().equals(""))
+					{
+						txt.setText(Q2DEditor.DEFAULT_WORLD_NAME);
+						txt.setForeground(Color.GRAY);
+					}
+				}
+				else if (txt.equals(txtWidth))
+					txt.setText("" + Q2DEditor.INSTANCE.getMapWidth());
+				else if (txt.equals(txtHeight))
+					txt.setText("" + Q2DEditor.INSTANCE.getMapHeight());
+			}
+
+			@Override
+			public void focusGained(FocusEvent event)
+			{
+				JTextField txt = (JTextField) event.getSource();
+				if (txt.equals(txtName))
+				{
+					if (txt.getText().equals(Q2DEditor.DEFAULT_WORLD_NAME))
+					{
+						txt.setText("");
+						txt.setForeground(Color.BLACK);
+					}
 				}
 			}
 		});
@@ -488,6 +495,10 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
+		//		if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH))
+		//			txtWidth.setText("" + evt.getNewValue());
+		//		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT))
+		//			txtHeight.setText("" + evt.getNewValue());
 	}
 
 	public void onPencilPaste()

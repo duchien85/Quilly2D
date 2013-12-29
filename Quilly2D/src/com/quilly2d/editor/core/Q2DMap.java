@@ -97,4 +97,27 @@ public class Q2DMap
 
 		result.put(tile.getLayer(), tile);
 	}
+
+	public void removeTile(int indexX, int indexY, int layer)
+	{
+		Map<Integer, Map<Integer, Q2DTile>> map = null;
+		if (tiles.containsKey(indexX))
+			map = tiles.get(indexX);
+		else
+		{
+			map = new TreeMap<Integer, Map<Integer, Q2DTile>>();
+			tiles.put(indexX, map);
+		}
+
+		Map<Integer, Q2DTile> result = null;
+		if (map.containsKey(indexY))
+			result = map.get(indexY);
+		else
+		{
+			result = new TreeMap<Integer, Q2DTile>();
+			map.put(indexY, result);
+		}
+
+		result.remove(layer);
+	}
 }

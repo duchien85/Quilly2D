@@ -169,6 +169,7 @@ public enum Q2DEditor
 
 	public void setMapWidth(int width)
 	{
+		width = new Double(Math.ceil(1.0 * width / getTileSize())).intValue() * getTileSize();
 		propChangeSupport.firePropertyChange(PROPERTY_MAP_WIDTH, world.getMap().getMapWidth(), width);
 		world.getMap().setMapWidth(width);
 	}
@@ -180,6 +181,7 @@ public enum Q2DEditor
 
 	public void setMapHeight(int height)
 	{
+		height = new Double(Math.ceil(1.0 * height / getTileSize())).intValue() * getTileSize();
 		propChangeSupport.firePropertyChange(PROPERTY_MAP_HEIGHT, world.getMap().getMapHeight(), height);
 		world.getMap().setMapHeight(height);
 	}
@@ -452,66 +454,91 @@ public enum Q2DEditor
 
 		switch (pencilMode)
 		{
-			case NORMAL:
-			case ADVANCED:
-				if (isFillModeActive)
-				{
-					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-					for (int x = 0; x < maxX; x += pencil.getSizeX())
-						for (int y = 0; y < maxY; y += pencil.getSizeY())
-							initMapTilesFromPencil(x, y);
-				}
-				else
-					initMapTilesFromPencil(indexX, indexY);
-				break;
-			case COLLISION:
-				for (int x = 0; x < pencil.getSizeX(); ++x)
-					for (int y = 0; y < pencil.getSizeY(); ++y)
-					{
-						int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-						int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-						if ((indexX + x) < maxX && (indexY + y) < maxY)
-						{
-							Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
-							if (result == null)
-							{
-								result = new Q2DTile();
-								result.setIndexX(indexX + x);
-								result.setIndexY(indexY + y);
-								result.setLayer(currentLayer);
-							}
-							result.setHasCollision(true);
-							world.getMap().setTile(result);
-						}
-					}
-				break;
-			case ANIMATION:
-				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+		case NORMAL:
+		case ADVANCED:
+			if (isFillModeActive)
+			{
 				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				int sizeX = animationWidth / getTileSize() - 1;
-				int sizeY = animationWidth / getTileSize() - 1;
-				if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				for (int x = 0; x < maxX; x += pencil.getSizeX())
+					for (int y = 0; y < maxY; y += pencil.getSizeY())
+						initMapTilesFromPencil(x, y);
+			}
+			else
+				initMapTilesFromPencil(indexX, indexY);
+			break;
+		case COLLISION:
+			for (int x = 0; x < pencil.getSizeX(); ++x)
+				for (int y = 0; y < pencil.getSizeY(); ++y)
 				{
-					Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
-					if (tile == null)
-						tile = new Q2DTile();
-					tile.setIndexX(indexX);
-					tile.setIndexY(indexY);
-					tile.setLayer(currentLayer);
-					tile.setAnimationSpritePath(animationSpritePath);
-					tile.setNumColumns(animationNumColumns);
-					tile.setNumRows(animationNumRows);
-					tile.setAnimationsPerSecond(animationsPerSecond);
-					tile.setWidth(animationWidth);
-					tile.setHeight(animationHeight);
-					tile.setHasAnimation(true);
-					world.getMap().setTile(tile);
+					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+					if ((indexX + x) < maxX && (indexY + y) < maxY)
+					{
+						Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
+						if (result == null)
+						{
+							result = new Q2DTile();
+							result.setIndexX(indexX + x);
+							result.setIndexY(indexY + y);
+							result.setLayer(currentLayer);
+						}
+						result.setHasCollision(true);
+						world.getMap().setTile(result);
+					}
 				}
-				break;
+			break;
+		case ANIMATION:
+			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+			int sizeX = animationWidth / getTileSize() - 1;
+			int sizeY = animationWidth / getTileSize() - 1;
+			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+			{
+				Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
+				if (tile == null)
+					tile = new Q2DTile();
+				tile.setIndexX(indexX);
+				tile.setIndexY(indexY);
+				tile.setLayer(currentLayer);
+				tile.setAnimationSpritePath(animationSpritePath);
+				tile.setNumColumns(animationNumColumns);
+				tile.setNumRows(animationNumRows);
+				tile.setAnimationsPerSecond(animationsPerSecond);
+				tile.setWidth(animationWidth);
+				tile.setHeight(animationHeight);
+				tile.setHasAnimation(true);
+				world.getMap().setTile(tile);
+			}
+			break;
 		}
 
 		splitPane.onPencilPaste();
+	}
+
+	public void deletePencil(int leftIndex, int topIndex)
+	{
+		for (int x = 0; x < pencil.getSizeX(); ++x)
+			for (int y = 0; y < pencil.getSizeY(); ++y)
+			{
+				int maxY = getMapHeight() / getTileSize();
+				int maxX = getMapWidth() / getTileSize();
+				if ((leftIndex + x) < maxX && (topIndex + y) < maxY)
+				{
+					if (pencilMode == Q2DPencilMode.COLLISION)
+					{
+						Q2DTile result = world.getMap().getTile(leftIndex + x, topIndex + y, currentLayer);
+						if (result != null)
+							result.setHasCollision(false);
+						world.getMap().setTile(result);
+					}
+					else
+						world.getMap().removeTile(leftIndex + x, topIndex + y, currentLayer);
+				}
+			}
+
+		if (splitPane != null)
+			splitPane.repaint();
 	}
 
 	public void setAnimationData(String path, int width, int height, int numColumns, int numRows, int fps)
@@ -562,8 +589,7 @@ public enum Q2DEditor
 	private void initAnimationTimer()
 	{
 		Timer timer = new Timer(true);
-		timer.schedule(new TimerTask()
-		{
+		timer.schedule(new TimerTask() {
 			@Override
 			public void run()
 			{

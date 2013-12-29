@@ -42,8 +42,7 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 		Q2DEditor.INSTANCE.addPropertyChangeListener(mapPanel);
 
 		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		manager.addKeyEventDispatcher(new KeyEventDispatcher()
-		{
+		manager.addKeyEventDispatcher(new KeyEventDispatcher() {
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent event)
 			{
@@ -51,17 +50,21 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 				{
 					switch (event.getKeyCode())
 					{
-						case KeyEvent.VK_0:
-						case KeyEvent.VK_1:
-						case KeyEvent.VK_2:
-						case KeyEvent.VK_3:
-						case KeyEvent.VK_4:
-						case KeyEvent.VK_5:
-						case KeyEvent.VK_6:
-							int layer = event.getKeyCode() - 49;
-							if (layer < Q2DEditor.INSTANCE.getNumLayers())
-								Q2DEditor.INSTANCE.setCurrentLayer(layer);
-							break;
+					case KeyEvent.VK_0:
+					case KeyEvent.VK_1:
+					case KeyEvent.VK_2:
+					case KeyEvent.VK_3:
+					case KeyEvent.VK_4:
+					case KeyEvent.VK_5:
+					case KeyEvent.VK_6:
+						int layer = event.getKeyCode() - 49;
+						if (layer < Q2DEditor.INSTANCE.getNumLayers())
+							Q2DEditor.INSTANCE.setCurrentLayer(layer);
+						break;
+					case KeyEvent.VK_DELETE:
+					case KeyEvent.VK_BACK_SPACE:
+						if (mapPanel.getCurrentMapPencilIndexX() != -1 && mapPanel.getCurrentMapPencilIndexY() != -1)
+							Q2DEditor.INSTANCE.deletePencil(mapPanel.getCurrentMapPencilIndexX(), mapPanel.getCurrentMapPencilIndexY());
 					}
 				}
 				return false;
