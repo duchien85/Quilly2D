@@ -3,7 +3,6 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.TreeMap;
@@ -141,7 +140,7 @@ public class Q2DPencil
 								tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
 							else
 								tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-							Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileSet);
 							g2.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
 						}
 					}

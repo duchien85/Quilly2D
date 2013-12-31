@@ -5,12 +5,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -89,7 +89,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		groupPencil.add(btnPencilAdvanced);
 		btnPencilFill = new JCheckBox("Fill");
 		btnPencilFill.setBackground(Color.WHITE);
-		btnPencilFill.addActionListener(new ActionListener() {
+		btnPencilFill.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent event)
 			{
@@ -99,7 +100,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		btnPencilGroundTexture = new JCheckBox("Ground Texture");
 		btnPencilGroundTexture.setBackground(Color.WHITE);
 		btnPencilGroundTexture.setEnabled(false);
-		btnPencilGroundTexture.addActionListener(new ActionListener() {
+		btnPencilGroundTexture.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent event)
 			{
@@ -180,7 +182,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		else
 			btn = new JRadioButton("" + (layer + 1));
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -225,7 +228,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	{
 		JRadioButton btn = new JRadioButton(name);
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -288,7 +292,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		slider.setPaintLabels(true);
 		slider.setBackground(Color.WHITE);
 
-		slider.addChangeListener(new ChangeListener() {
+		slider.addChangeListener(new ChangeListener()
+		{
 			@Override
 			public void stateChanged(ChangeEvent event)
 			{
@@ -352,7 +357,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 						else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
 						{
 							String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-							Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileSet);
 
 							double srcX = mapTile.getTileIndexX() * tileSize;
 							double srcY = mapTile.getTileIndexY() * tileSize;
@@ -583,7 +588,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		}
 		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_PENCIL_SIZE_X) || evt.getPropertyName().equals(Q2DEditor.PROPERTY_PENCIL_SIZE_Y))
 		{
-			SwingUtilities.invokeLater(new Runnable() {
+			SwingUtilities.invokeLater(new Runnable()
+			{
 				@Override
 				public void run()
 				{

@@ -6,11 +6,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -106,14 +106,16 @@ public class Q2DAnimationDialog extends JDialog
 		addComponent(btnCANCEL, 320 + 15, 330);
 		btnCANCEL.setSize(80, 30);
 
-		btnOK.addActionListener(new ActionListener() {
+		btnOK.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				Q2DAnimationDialog.this.dispose();
 			}
 		});
-		btnCANCEL.addActionListener(new ActionListener() {
+		btnCANCEL.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
@@ -144,7 +146,8 @@ public class Q2DAnimationDialog extends JDialog
 		txt.setText("");
 		txt.setEnabled(false);
 
-		txt.getDocument().addDocumentListener(new DocumentListener() {
+		txt.getDocument().addDocumentListener(new DocumentListener()
+		{
 			@Override
 			public void removeUpdate(DocumentEvent event)
 			{
@@ -178,11 +181,11 @@ public class Q2DAnimationDialog extends JDialog
 							int height = Integer.parseInt(txtHeight.getText());
 							sprite.setSize(width, height);
 						}
-						//						else if (txt.equals(txtAnimationsPerSecond))
-						//						{
-						//							int fps = Integer.parseInt(txtAnimationsPerSecond.getText());
-						//							initAnimationTimer();
-						//						}
+						// else if (txt.equals(txtAnimationsPerSecond))
+						// {
+						// int fps = Integer.parseInt(txtAnimationsPerSecond.getText());
+						// initAnimationTimer();
+						// }
 						else
 						{
 							initSprite(path);
@@ -192,7 +195,8 @@ public class Q2DAnimationDialog extends JDialog
 				catch (NumberFormatException e)
 				{
 					JOptionPane.showMessageDialog(txt, "You must enter a correct numeric value for", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
-					SwingUtilities.invokeLater(new Runnable() {
+					SwingUtilities.invokeLater(new Runnable()
+					{
 						@Override
 						public void run()
 						{
@@ -212,7 +216,8 @@ public class Q2DAnimationDialog extends JDialog
 			timer.cancel();
 
 		timer = new Timer(true);
-		timer.schedule(new TimerTask() {
+		timer.schedule(new TimerTask()
+		{
 			@Override
 			public void run()
 			{
@@ -229,20 +234,21 @@ public class Q2DAnimationDialog extends JDialog
 
 	private void initSprite(String path)
 	{
-		ImageIcon animation = new ImageIcon(this.getClass().getResource("/" + path));
+		BufferedImage img = Q2DEditor.INSTANCE.getImage(path);
 		int columns = Integer.parseInt(txtAnimationNumColumns.getText());
 		int rows = Integer.parseInt(txtAnimationNumRows.getText());
 		int fps = Integer.parseInt(txtAnimationsPerSecond.getText());
 		int width = Integer.parseInt(txtWidth.getText());
 		int height = Integer.parseInt(txtHeight.getText());
-		sprite = new Q2DSprite(animation.getImage(), animation.getIconWidth(), animation.getIconHeight(), columns, rows, fps, 0);
+		sprite = new Q2DSprite(img, img.getWidth(null), img.getHeight(null), columns, rows, fps, 0);
 		sprite.setSize(width, height);
 	}
 
 	private JButton createBrowseButton()
 	{
 		final JButton btn = new JButton("Browse");
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{

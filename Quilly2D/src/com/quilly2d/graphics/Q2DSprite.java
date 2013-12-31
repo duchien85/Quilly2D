@@ -1,8 +1,8 @@
 package com.quilly2d.graphics;
 
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -14,7 +14,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	public static final String		PROPERTY_NAME_WIDTH		= "spriteWidth";
 	public static final String		PROPERTY_NAME_HEIGHT	= "spriteHeight";
 
-	private Image					img;
+	private BufferedImage			img;
 	private final int				imgWidth;
 	private final int				imgHeight;
 	private int						numColumns				= 1;
@@ -38,7 +38,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	private PropertyChangeSupport	propChangeSupport		= new PropertyChangeSupport(this);
 	protected boolean				isRemovable				= false;
 
-	public Q2DSprite(Image img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
+	public Q2DSprite(BufferedImage img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
 	{
 		this.img = img;
 
@@ -173,7 +173,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		return layer;
 	}
 
-	public Image getImage()
+	public BufferedImage getImage()
 	{
 		return img;
 	}
@@ -298,7 +298,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		return boundaries.intersects(otherSprite.boundaries);
 	}
 
-	//TODO pixelperfect collision
+	// TODO pixelperfect collision
 	public boolean isColliding(Q2DSprite otherSprite, boolean pixelPerfect)
 	{
 		boolean result = boundaries.intersects(otherSprite.boundaries);
@@ -315,24 +315,24 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		int topY = Math.max(boundaries.y, otherSprite.getY());
 		int bottomY = Math.min(boundaries.y + boundaries.height, otherSprite.getY() + otherSprite.getHeight());
 
-		//Determine the width and height of the collision rectangle
+		// Determine the width and height of the collision rectangle
 		int width = rightX - leftX;
 		int height = bottomY - topY;
 
-		//arrays to hold the pixels
+		// arrays to hold the pixels
 		int[] pixels1 = new int[width * height];
 		int[] pixels2 = new int[width * height];
 
 		try
 		{
-			//Grab the pixels
+			// Grab the pixels
 			PixelGrabber pg1 = new PixelGrabber(img, leftX - boundaries.x, topY - boundaries.y, width, height, pixels1, 0, width);
 			PixelGrabber pg2 = new PixelGrabber(otherSprite.getImage(), leftX - otherSprite.getX(), topY - otherSprite.getY(), width, height, pixels2, 0, width);
 
 			pg1.grabPixels();
 			pg2.grabPixels();
 
-			//Check if pixels at the same spot from both arrays are not transparent.
+			// Check if pixels at the same spot from both arrays are not transparent.
 			for (int i = 0; i < pixels1.length; i++)
 			{
 				int a = (pixels1[i] >>> 24) & 0xff;

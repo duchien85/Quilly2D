@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
-import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
@@ -38,54 +37,54 @@ public enum Q2DEditor
 	INSTANCE;
 
 	// editor specific data
-	public static final String		PROPERTY_PENCIL_SIZE_X			= "pencilSizeX";
-	public static final String		PROPERTY_PENCIL_SIZE_Y			= "pencilSizeY";
-	public static final String		PROPERTY_PENCIL_TILE_INDEX_X	= "pencilTileIndexX";
-	public static final String		PROPERTY_PENCIL_TILE_INDEX_Y	= "pencilTileIndexY";
-	public static final String		PROPERTY_NUM_LAYERS				= "numLayers";
-	public static final String		PROPERTY_TILE_SIZE				= "tileSize";
-	public static final String		PROPERTY_TILESET_INDEX			= "tileSetIndex";
-	public static final String		PROPERTY_MAP_WIDTH				= "mapWidth";
-	public static final String		PROPERTY_MAP_HEIGHT				= "mapHeight";
-	public static final String		PROPERTY_TILESET				= "tileSet";
-	public static final String		PROPERTY_CURRENT_LAYER			= "currentLayer";
-	private Q2DEditorSplitPane		splitPane						= null;
-	private Map<String, Image>		tileSetImages					= new HashMap<String, Image>();
-	private int						currentTileIndex				= 0;
-	private int						currentLayer					= 0;
-	private Q2DPencil				pencil							= new Q2DPencil();
-	private Q2DPencilMode			pencilMode						= Q2DPencilMode.NORMAL;
-	private boolean					isFillModeActive				= false;
-	private boolean					isGroundTextureModeActive		= false;
-	private int						currentPencilIndexX				= -1;
-	private int						currentPencilIndexY				= -1;
-	private PropertyChangeSupport	propChangeSupport				= new PropertyChangeSupport(this);
-	public static final int			MAX_STEPS_TO_BE_REMEMBERED		= 200;
-	List<Q2DWorld>					history							= new ArrayList<Q2DWorld>();
+	public static final String			PROPERTY_PENCIL_SIZE_X			= "pencilSizeX";
+	public static final String			PROPERTY_PENCIL_SIZE_Y			= "pencilSizeY";
+	public static final String			PROPERTY_PENCIL_TILE_INDEX_X	= "pencilTileIndexX";
+	public static final String			PROPERTY_PENCIL_TILE_INDEX_Y	= "pencilTileIndexY";
+	public static final String			PROPERTY_NUM_LAYERS				= "numLayers";
+	public static final String			PROPERTY_TILE_SIZE				= "tileSize";
+	public static final String			PROPERTY_TILESET_INDEX			= "tileSetIndex";
+	public static final String			PROPERTY_MAP_WIDTH				= "mapWidth";
+	public static final String			PROPERTY_MAP_HEIGHT				= "mapHeight";
+	public static final String			PROPERTY_TILESET				= "tileSet";
+	public static final String			PROPERTY_CURRENT_LAYER			= "currentLayer";
+	private Q2DEditorSplitPane			splitPane						= null;
+	private Map<String, BufferedImage>	imgCache						= new HashMap<String, BufferedImage>();
+	private int							currentTileIndex				= 0;
+	private int							currentLayer					= 0;
+	private Q2DPencil					pencil							= new Q2DPencil();
+	private Q2DPencilMode				pencilMode						= Q2DPencilMode.NORMAL;
+	private boolean						isFillModeActive				= false;
+	private boolean						isGroundTextureModeActive		= false;
+	private int							currentPencilIndexX				= -1;
+	private int							currentPencilIndexY				= -1;
+	private PropertyChangeSupport		propChangeSupport				= new PropertyChangeSupport(this);
+	public static final int				MAX_STEPS_TO_BE_REMEMBERED		= 200;
+	List<Q2DWorld>						history							= new ArrayList<Q2DWorld>();
 	// world specific data
-	public static final String		DEFAULT_WORLD_NAME				= "Enter name";
-	public static final int			MAX_NUM_LAYERS					= 6;
-	public static final int			MAX_MAP_WIDTH					= 500 * 32;
-	public static final int			MAX_MAP_HEIGHT					= 500 * 32;
-	private final int				DEFAULT_WORLD_WIDTH				= 25 * 32;
-	private final int				DEFAULT_WORLD_HEIGHT			= 20 * 32;
-	private final int				DEFAULT_WORLD_TILESIZE			= 32;
-	private final int				DEFAULT_NUM_LAYERS				= 3;
-	private Q2DWorld				world							= null;
+	public static final String			DEFAULT_WORLD_NAME				= "Enter name";
+	public static final int				MAX_NUM_LAYERS					= 6;
+	public static final int				MAX_MAP_WIDTH					= 500 * 32;
+	public static final int				MAX_MAP_HEIGHT					= 500 * 32;
+	private final int					DEFAULT_WORLD_WIDTH				= 25 * 32;
+	private final int					DEFAULT_WORLD_HEIGHT			= 20 * 32;
+	private final int					DEFAULT_WORLD_TILESIZE			= 32;
+	private final int					DEFAULT_NUM_LAYERS				= 3;
+	private Q2DWorld					world							= null;
 	// animation specific data
-	public static final int			FRAMES_PER_SECOND				= 50;
-	private String					animationSpritePath				= null;
-	private int						animationsPerSecond				= 0;
-	private int						animationWidth					= 0;
-	private int						animationHeight					= 0;
-	private int						animationNumColumns				= 0;
-	private int						animationNumRows				= 0;
-	private Map<String, Q2DSprite>	animations						= new HashMap<String, Q2DSprite>();
+	public static final int				FRAMES_PER_SECOND				= 50;
+	private String						animationSpritePath				= null;
+	private int							animationsPerSecond				= 0;
+	private int							animationWidth					= 0;
+	private int							animationHeight					= 0;
+	private int							animationNumColumns				= 0;
+	private int							animationNumRows				= 0;
+	private Map<String, Q2DSprite>		animations						= new HashMap<String, Q2DSprite>();
 
 	public void initPencilSelection(int tileIndexX, int tileIndexY)
 	{
 		String tileSet = getTileSet(getCurrentTileSetIndex());
-		Image img = getTileSetImage(tileSet);
+		BufferedImage img = getImage(tileSet);
 		if (img != null)
 		{
 			propChangeSupport.firePropertyChange(PROPERTY_PENCIL_TILE_INDEX_X, pencil.getTileIndexX(0, 0), tileIndexX);
@@ -248,16 +247,10 @@ public enum Q2DEditor
 		return world.getTileSet(index);
 	}
 
-	public Image getTileSetImage(String tileSet)
+	private BufferedImage makeColorTransparent(BufferedImage im, final Color color)
 	{
-		if (tileSetImages.containsKey(tileSet))
-			return tileSetImages.get(tileSet);
-		return null;
-	}
-
-	private Image makeColorTransparent(BufferedImage im, final Color color)
-	{
-		ImageFilter filter = new RGBImageFilter() {
+		ImageFilter filter = new RGBImageFilter()
+		{
 			public int	markerRGB	= color.getRGB() | 0xFF000000;
 
 			public final int filterRGB(int x, int y, int rgb)
@@ -271,36 +264,69 @@ public enum Q2DEditor
 		};
 
 		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-		return Toolkit.getDefaultToolkit().createImage(ip);
-	}
+		java.awt.Image alphaImg = Toolkit.getDefaultToolkit().createImage(ip);
 
-	private BufferedImage imageToBufferedImage(Image image)
-	{
 		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
 		// check if image is already optimized
-		if (image instanceof BufferedImage && ((BufferedImage) image).getColorModel().equals(gfx_config.getColorModel()))
-			return (BufferedImage) image;
+		if (alphaImg instanceof BufferedImage && ((BufferedImage) alphaImg).getColorModel().equals(gfx_config.getColorModel()))
+		{
+			return (BufferedImage) alphaImg;
+		}
+		else
+		{
+			BufferedImage new_image = gfx_config.createCompatibleImage(alphaImg.getWidth(null), alphaImg.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+			g2.drawImage(alphaImg, 0, 0, null);
+			g2.dispose();
 
-		BufferedImage new_image = gfx_config.createCompatibleImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2 = (Graphics2D) new_image.getGraphics();
-		g2.drawImage(image, 0, 0, null);
-		g2.dispose();
+			return new_image;
+		}
+	}
 
-		return new_image;
+	public BufferedImage getImage(String filePath)
+	{
+		if (filePath == null)
+			return null;
+
+		if (imgCache.containsKey(filePath))
+		{
+			return imgCache.get(filePath);
+		}
+		else
+		{
+			ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
+
+			GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+			// check if image is already optimized
+			if (icon.getImage() instanceof BufferedImage && ((BufferedImage) icon.getImage()).getColorModel().equals(gfx_config.getColorModel()))
+			{
+				imgCache.put(filePath, (BufferedImage) icon.getImage());
+				return (BufferedImage) icon.getImage();
+			}
+			else
+			{
+				BufferedImage new_image = gfx_config.createCompatibleImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+				Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+				g2.drawImage(icon.getImage(), 0, 0, null);
+				g2.dispose();
+
+				imgCache.put(filePath, new_image);
+				return new_image;
+			}
+		}
 	}
 
 	public void setAlphaColor(String tileset, int posX, int posY)
 	{
-		BufferedImage img = (BufferedImage) getTileSetImage(tileset + "_original");
-		if (img == null)
-		{
-			img = (BufferedImage) getTileSetImage(tileset);
-			tileSetImages.put(tileset + "_original", img);
-		}
+		if (!imgCache.containsKey(tileset + "_original"))
+			imgCache.put(tileset + "_original", getImage(tileset));
+
+		BufferedImage img = getImage(tileset + "_original");
 		int rgb = img.getRGB(posX, posY);
-		img = imageToBufferedImage(makeColorTransparent(img, new Color(rgb)));
-		tileSetImages.put(tileset, img);
+		img = makeColorTransparent(img, new Color(rgb));
+		imgCache.put(tileset, img);
 		if (splitPane != null)
 			splitPane.repaint();
 	}
@@ -309,8 +335,6 @@ public enum Q2DEditor
 	{
 		propChangeSupport.firePropertyChange(PROPERTY_TILESET, index, tileSet);
 		world.setTileSet(index, tileSet);
-		ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + tileSet));
-		tileSetImages.put(tileSet, imageToBufferedImage(icon.getImage()));
 	}
 
 	public void setPencilSize(int sizeX, int sizeY)
@@ -525,63 +549,63 @@ public enum Q2DEditor
 
 		switch (pencilMode)
 		{
-		case NORMAL:
-		case ADVANCED:
-			if (isFillModeActive)
-			{
-				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-				for (int x = 0; x < maxX; x += pencil.getSizeX())
-					for (int y = 0; y < maxY; y += pencil.getSizeY())
-						initMapTilesFromPencil(x, y);
-			}
-			else
-				initMapTilesFromPencil(indexX, indexY);
-			break;
-		case COLLISION:
-			for (int x = 0; x < pencil.getSizeX(); ++x)
-				for (int y = 0; y < pencil.getSizeY(); ++y)
+			case NORMAL:
+			case ADVANCED:
+				if (isFillModeActive)
 				{
-					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
 					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-					if ((indexX + x) < maxX && (indexY + y) < maxY)
-					{
-						Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
-						if (result == null)
-						{
-							result = new Q2DTile();
-							result.setIndexX(indexX + x);
-							result.setIndexY(indexY + y);
-							result.setLayer(currentLayer);
-						}
-						result.setHasCollision(true);
-						world.getMap().setTile(result);
-					}
+					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+					for (int x = 0; x < maxX; x += pencil.getSizeX())
+						for (int y = 0; y < maxY; y += pencil.getSizeY())
+							initMapTilesFromPencil(x, y);
 				}
-			break;
-		case ANIMATION:
-			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-			int sizeX = animationWidth / getTileSize() - 1;
-			int sizeY = animationWidth / getTileSize() - 1;
-			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
-			{
-				Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
-				if (tile == null)
-					tile = new Q2DTile();
-				tile.setIndexX(indexX);
-				tile.setIndexY(indexY);
-				tile.setLayer(currentLayer);
-				tile.setAnimationSpritePath(animationSpritePath);
-				tile.setNumColumns(animationNumColumns);
-				tile.setNumRows(animationNumRows);
-				tile.setAnimationsPerSecond(animationsPerSecond);
-				tile.setWidth(animationWidth);
-				tile.setHeight(animationHeight);
-				tile.setHasAnimation(true);
-				world.getMap().setTile(tile);
-			}
-			break;
+				else
+					initMapTilesFromPencil(indexX, indexY);
+				break;
+			case COLLISION:
+				for (int x = 0; x < pencil.getSizeX(); ++x)
+					for (int y = 0; y < pencil.getSizeY(); ++y)
+					{
+						int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+						int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+						if ((indexX + x) < maxX && (indexY + y) < maxY)
+						{
+							Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
+							if (result == null)
+							{
+								result = new Q2DTile();
+								result.setIndexX(indexX + x);
+								result.setIndexY(indexY + y);
+								result.setLayer(currentLayer);
+							}
+							result.setHasCollision(true);
+							world.getMap().setTile(result);
+						}
+					}
+				break;
+			case ANIMATION:
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+				int sizeX = animationWidth / getTileSize() - 1;
+				int sizeY = animationWidth / getTileSize() - 1;
+				if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+				{
+					Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
+					if (tile == null)
+						tile = new Q2DTile();
+					tile.setIndexX(indexX);
+					tile.setIndexY(indexY);
+					tile.setLayer(currentLayer);
+					tile.setAnimationSpritePath(animationSpritePath);
+					tile.setNumColumns(animationNumColumns);
+					tile.setNumRows(animationNumRows);
+					tile.setAnimationsPerSecond(animationsPerSecond);
+					tile.setWidth(animationWidth);
+					tile.setHeight(animationHeight);
+					tile.setHasAnimation(true);
+					world.getMap().setTile(tile);
+				}
+				break;
 		}
 
 		splitPane.onPencilPaste();
@@ -642,10 +666,10 @@ public enum Q2DEditor
 		animationNumColumns = numColumns;
 		animationNumRows = numRows;
 
-		ImageIcon animation = new ImageIcon(this.getClass().getResource("/" + path));
 		if (!animations.containsKey(path + "#" + width + "#" + height + "#" + fps))
 		{
-			Q2DSprite sprite = new Q2DSprite(animation.getImage(), animation.getIconWidth(), animation.getIconHeight(), numColumns, numRows, fps, 0);
+			BufferedImage img = getImage(path);
+			Q2DSprite sprite = new Q2DSprite(img, img.getWidth(null), img.getHeight(null), numColumns, numRows, fps, 0);
 			sprite.setSize(width, height);
 			animations.put(path + "#" + width + "#" + height + "#" + fps, sprite);
 		}
@@ -681,7 +705,8 @@ public enum Q2DEditor
 	private void initAnimationTimer()
 	{
 		Timer timer = new Timer(true);
-		timer.schedule(new TimerTask() {
+		timer.schedule(new TimerTask()
+		{
 			@Override
 			public void run()
 			{

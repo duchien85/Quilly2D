@@ -3,7 +3,6 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -11,6 +10,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -155,7 +155,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		final JTextField txt = new JTextField(20);
 
-		txt.getDocument().addDocumentListener(new DocumentListener() {
+		txt.getDocument().addDocumentListener(new DocumentListener()
+		{
 			@Override
 			public void removeUpdate(DocumentEvent event)
 			{
@@ -199,7 +200,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				catch (NumberFormatException e)
 				{
 					JOptionPane.showMessageDialog(txtWidth, "You must enter a correct numeric value for \"width\" and \"height\"", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
-					SwingUtilities.invokeLater(new Runnable() {
+					SwingUtilities.invokeLater(new Runnable()
+					{
 						@Override
 						public void run()
 						{
@@ -213,7 +215,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			}
 		});
 
-		txt.addFocusListener(new FocusListener() {
+		txt.addFocusListener(new FocusListener()
+		{
 			@Override
 			public void focusLost(FocusEvent event)
 			{
@@ -253,7 +256,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	private JButton createButton()
 	{
 		final JButton btn = new JButton("Browse");
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent arg0)
@@ -303,7 +307,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		final JRadioButton btn = new JRadioButton("" + (tileSet + 1));
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -335,7 +340,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		slider.setPaintLabels(true);
 		slider.setBackground(Color.WHITE);
 
-		slider.addChangeListener(new ChangeListener() {
+		slider.addChangeListener(new ChangeListener()
+		{
 
 			@Override
 			public void stateChanged(ChangeEvent event)
@@ -378,7 +384,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		Q2DEditor.INSTANCE.setPencilSize(1, 1);
 	}
 
-	private void drawGrid(Graphics graphics, Image img)
+	private void drawGrid(Graphics graphics, BufferedImage img)
 	{
 		final int tileSize = Q2DEditor.INSTANCE.getTileSize();
 		final int maxY = new Double(Math.ceil(1.0 * img.getHeight(null) / tileSize)).intValue();
@@ -400,7 +406,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		super.paintComponent(graphics);
 		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		BufferedImage img = Q2DEditor.INSTANCE.getImage(tileSet);
 		if (img != null)
 		{
 			graphics.drawImage(img, TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
@@ -431,7 +437,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			return;
 
 		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		BufferedImage img = Q2DEditor.INSTANCE.getImage(tileSet);
 		if (img != null)
 		{
 			final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
@@ -477,7 +483,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			if (isSelectingTiles)
 			{
 				String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-				Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+				BufferedImage img = Q2DEditor.INSTANCE.getImage(tileSet);
 				if (img != null)
 				{
 					final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
@@ -502,10 +508,10 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
-		//		if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH))
-		//			txtWidth.setText("" + evt.getNewValue());
-		//		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT))
-		//			txtHeight.setText("" + evt.getNewValue());
+		// if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH))
+		// txtWidth.setText("" + evt.getNewValue());
+		// else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT))
+		// txtHeight.setText("" + evt.getNewValue());
 	}
 
 	public void onPencilPaste()
