@@ -31,6 +31,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
+import com.quilly2d.editor.core.Q2DEditorMenubar;
 import com.quilly2d.editor.core.Q2DEditorSplitPane;
 import com.quilly2d.editor.core.Q2DPencil;
 import com.quilly2d.editor.core.Q2DTile;
@@ -92,6 +93,9 @@ public enum Q2DEditor
 
 	public void initWorld(String name)
 	{
+		history.clear();
+		imgCache.clear();
+		tilesetAlphaKeys.clear();
 		world = new Q2DWorld(name, DEFAULT_WORLD_WIDTH, DEFAULT_WORLD_HEIGHT, DEFAULT_NUM_LAYERS, DEFAULT_WORLD_TILESIZE);
 	}
 
@@ -793,6 +797,8 @@ public enum Q2DEditor
 			// Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(Toolkit.getDefaultToolkit().getScreenSize()));
 			Q2DEditor.INSTANCE.setSplitPane(new Q2DEditorSplitPane(MAX_MAP_WIDTH, MAX_MAP_HEIGHT));
 			frame.add(Q2DEditor.INSTANCE.getSplitPane());
+
+			new Q2DEditorMenubar(frame);
 
 			// center frame
 			frame.setLocationRelativeTo(null);

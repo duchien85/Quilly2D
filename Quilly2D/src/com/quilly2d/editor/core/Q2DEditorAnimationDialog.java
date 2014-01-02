@@ -28,7 +28,7 @@ import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
-public class Q2DAnimationDialog extends JDialog
+public class Q2DEditorAnimationDialog extends JDialog
 {
 	private final int	PREVIEW_OFFSET_X		= 350;
 	private final int	PREVIEW_OFFSET_Y		= 50;
@@ -53,7 +53,7 @@ public class Q2DAnimationDialog extends JDialog
 	private Q2DSprite	sprite					= null;
 	private String		path					= null;
 
-	public Q2DAnimationDialog()
+	public Q2DEditorAnimationDialog()
 	{
 		super();
 		setName("Choose animated sprite");
@@ -111,7 +111,7 @@ public class Q2DAnimationDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				Q2DAnimationDialog.this.dispose();
+				Q2DEditorAnimationDialog.this.dispose();
 			}
 		});
 		btnCANCEL.addActionListener(new ActionListener()
@@ -120,7 +120,7 @@ public class Q2DAnimationDialog extends JDialog
 			public void actionPerformed(ActionEvent e)
 			{
 				path = null;
-				Q2DAnimationDialog.this.dispose();
+				Q2DEditorAnimationDialog.this.dispose();
 			}
 		});
 
@@ -221,7 +221,7 @@ public class Q2DAnimationDialog extends JDialog
 			@Override
 			public void run()
 			{
-				if (Q2DAnimationDialog.this == null || !Q2DAnimationDialog.this.isVisible())
+				if (Q2DEditorAnimationDialog.this == null || !Q2DEditorAnimationDialog.this.isVisible())
 					this.cancel();
 				else
 				{

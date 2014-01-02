@@ -248,7 +248,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 						Q2DEditor.INSTANCE.setPencilMode(Q2DPencilMode.NORMAL);
 					else if (source.equals(btnPencilAnimation))
 					{
-						Q2DAnimationDialog dialog = new Q2DAnimationDialog();
+						Q2DEditorAnimationDialog dialog = new Q2DEditorAnimationDialog();
 						if (dialog.getAnimationPath() != null)
 						{
 							// animated sprite was selected
