@@ -396,6 +396,80 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		}
 	}
 
+	private void drawPencilPreview(Graphics graphics, int offsetX, int offsetY, int previewSizeX, int previewSizeY)
+	{
+		int sizeX = Q2DEditor.INSTANCE.getPencilSizeX();
+		int sizeY = Q2DEditor.INSTANCE.getPencilSizeY();
+		if (sizeX != 0 && sizeY != 0)
+		{
+			if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ANIMATION)
+			{
+				Q2DSprite animation = Q2DEditor.INSTANCE.getAnimation(Q2DEditor.INSTANCE.getCurrentAnimationPath(), Q2DEditor.INSTANCE.getCurrentAnimationWidth(), Q2DEditor.INSTANCE.getCurrentAnimationHeight(), Q2DEditor.INSTANCE.getCurrentAnimationFPS());
+				animation.paint((Graphics2D) graphics, -offsetX, -offsetY);
+			}
+			else
+			{
+				int tileSize = Q2DEditor.INSTANCE.getTileSize();
+				BufferedImage pencilImg = new BufferedImage(sizeX * tileSize, sizeY * tileSize, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D g2 = pencilImg.createGraphics();
+				g2.setColor(Color.BLACK);
+				for (int x = 0; x < sizeX; ++x)
+				{
+					for (int y = 0; y < sizeY; ++y)
+					{
+						int drawX = x * tileSize;
+						int drawY = y * tileSize;
+						Q2DTileIndex tileIndex = Q2DEditor.INSTANCE.getPencilTileIndex(x, y);
+						if (tileIndex != null)
+						{
+							String tileset = null;
+							if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
+								tileset = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
+							else
+								tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
+							g2.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
+						}
+					}
+				}
+
+				g2.dispose();
+				graphics.drawImage(pencilImg, offsetX, offsetY, Math.min(previewSizeX, pencilImg.getWidth()), Math.min(previewSizeY, pencilImg.getHeight()), null);
+			}
+
+		}
+
+		graphics.drawRect(offsetX - 1, offsetY - 1, previewSizeX + 1, previewSizeY + 1);
+	}
+
+	private void drawPencilSelection(Graphics graphics, int offsetX, int offsetY, int maxX, int maxY)
+	{
+		int sizeX = Q2DEditor.INSTANCE.getPencilSizeX();
+		int sizeY = Q2DEditor.INSTANCE.getPencilSizeY();
+		if (sizeX > 0 && sizeY > 0)
+		{
+			int tileSize = Q2DEditor.INSTANCE.getTileSize();
+			Color currentColor = graphics.getColor();
+
+			graphics.setColor(new Color(180, 160, 0, 128));
+			int width = offsetX + sizeX * tileSize;
+			int height = offsetY + sizeY * tileSize;
+			if (width > maxX)
+				maxX = maxX - offsetX;
+			else
+				maxX = width - offsetX;
+			if (height > maxY)
+				maxY = maxY - offsetY;
+			else
+				maxY = height - offsetY;
+			if (Q2DEditor.INSTANCE.isGroundTextureModeEnabled())
+				graphics.fillRect(offsetX, offsetY, Q2DEditor.INSTANCE.getTileSize(), Q2DEditor.INSTANCE.getTileSize());
+			else
+				graphics.fillRect(offsetX, offsetY, maxX, maxY);
+			graphics.setColor(currentColor);
+		}
+	}
+
 	private void drawPencil(Graphics graphics)
 	{
 		final int tileSize = Q2DEditor.INSTANCE.getTileSize();
@@ -405,7 +479,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		{
 			int indexX = (mouseX - MAP_OFFSET_X) / Q2DEditor.INSTANCE.getTileSize();
 			int indexY = (mouseY - MAP_OFFSET_Y) / Q2DEditor.INSTANCE.getTileSize();
-			Q2DEditor.INSTANCE.drawPencilSelection(graphics, MAP_OFFSET_X + indexX * Q2DEditor.INSTANCE.getTileSize(), MAP_OFFSET_Y + indexY * Q2DEditor.INSTANCE.getTileSize(), maxX, maxY);
+			drawPencilSelection(graphics, MAP_OFFSET_X + indexX * Q2DEditor.INSTANCE.getTileSize(), MAP_OFFSET_Y + indexY * Q2DEditor.INSTANCE.getTileSize(), maxX, maxY);
 		}
 		if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
 		{
@@ -431,7 +505,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	public void paintComponent(Graphics graphics)
 	{
 		super.paintComponent(graphics);
-		Q2DEditor.INSTANCE.drawPencilPreview(graphics, PENCIL_PREVIEW_OFFSET_X, PENCIL_PREVIEW_OFFSET_Y, PENCIL_PREVIEW_SIZE_X, PENCIL_PREVIEW_SIZE_Y);
+		drawPencilPreview(graphics, PENCIL_PREVIEW_OFFSET_X, PENCIL_PREVIEW_OFFSET_Y, PENCIL_PREVIEW_SIZE_X, PENCIL_PREVIEW_SIZE_Y);
 		drawMap(graphics);
 		if (!btnShowAllLayer.isSelected())
 			drawPencil(graphics);

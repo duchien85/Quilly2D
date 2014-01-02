@@ -15,7 +15,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.ButtonGroup;
@@ -391,8 +393,31 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				graphics.drawRect(TILESET_OFFSET_X + x * tileSize, TILESET_OFFSET_Y + y * tileSize, tileSize, tileSize);
 			}
 		}
+	}
 
-		Q2DEditor.INSTANCE.drawSelectedPencilTiles(graphics, TILESET_OFFSET_X, TILESET_OFFSET_Y);
+	private void drawPencilSelectedTiles(Graphics graphics, int offsetX, int offsetY)
+	{
+		int sizeX = Q2DEditor.INSTANCE.getPencilSizeX();
+		int sizeY = Q2DEditor.INSTANCE.getPencilSizeY();
+		if (sizeX != 0 && sizeY != 0)
+		{
+			int tileSize = Q2DEditor.INSTANCE.getTileSize();
+			Color currentColor = graphics.getColor();
+
+			graphics.setColor(new Color(180, 160, 0, 128));
+			Collection<Q2DTileIndex> selectedTiles = Q2DEditor.INSTANCE.getPencilSelectedTiles();
+			Iterator<Q2DTileIndex> iterator = selectedTiles.iterator();
+			while (iterator.hasNext())
+			{
+				Q2DTileIndex tileIndex = iterator.next();
+				if (tileIndex != null && (Q2DEditor.INSTANCE.getCurrentTileSetIndex() == tileIndex.TILESET_INDEX || tileIndex.TILESET_INDEX == -1))
+				{
+					graphics.fillRect((int) (offsetX + tileIndex.X * tileSize), (int) (offsetY + tileIndex.Y * tileSize), tileSize, tileSize);
+				}
+			}
+
+			graphics.setColor(currentColor);
+		}
 	}
 
 	@Override
@@ -405,6 +430,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		{
 			graphics.drawImage(img, TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
 			drawGrid(graphics, img);
+			drawPencilSelectedTiles(graphics, TILESET_OFFSET_X, TILESET_OFFSET_Y);
 		}
 	}
 
