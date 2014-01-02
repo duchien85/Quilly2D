@@ -1,28 +1,35 @@
 package com.quilly2d.editor.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Q2DWorld
+@SuppressWarnings("serial")
+public class Q2DWorld implements Serializable
 {
-	private String			name		= null;
-	private String			music		= null;
-	private List<String>	tileSets	= null;
-	private Q2DMap			map			= null;
+	private String			name				= null;
+	private String			music				= null;
+	private List<String>	tilesets			= null;
+	private List<String>	tilesetsAlphaKeys	= null;
+	private Q2DMap			map					= null;
 
 	public Q2DWorld(String name, int width, int height, int numLayers, int tileSize)
 	{
 		this.name = name;
-		tileSets = new ArrayList<String>();
+		tilesets = new ArrayList<String>();
+		tilesetsAlphaKeys = new ArrayList<String>();
 		map = new Q2DMap(width, height, numLayers, tileSize);
 	}
 
 	public Q2DWorld(Q2DWorld toCopy)
 	{
 		name = toCopy.name;
-		tileSets = new ArrayList<String>();
-		for (String tileset : toCopy.tileSets)
-			tileSets.add(tileset);
+		tilesets = new ArrayList<String>();
+		for (String tileset : toCopy.tilesets)
+			tilesets.add(tileset);
+		tilesetsAlphaKeys = new ArrayList<String>();
+		for (String tilesetAlphaKey : toCopy.tilesetsAlphaKeys)
+			tilesetsAlphaKeys.add(tilesetAlphaKey);
 		map = new Q2DMap(toCopy.map);
 	}
 
@@ -56,22 +63,26 @@ public class Q2DWorld
 		this.map = map;
 	}
 
-	public int getNumTileSets()
+	public int getNumTilesets()
 	{
-		return tileSets.size();
+		return tilesets.size();
 	}
 
-	public String getTileSet(int index)
+	public String getTileset(int index)
 	{
-		if (index < tileSets.size())
-			return tileSets.get(index);
+		if (index < tilesets.size())
+			return tilesets.get(index);
 		return null;
 	}
 
-	public void setTileSet(int index, String tileSet)
+	public void setTileset(int index, String tileset, String alphaKey)
 	{
-		if (index < tileSets.size())
-			tileSets.remove(index);
-		tileSets.add(index, tileSet);
+		if (index < tilesets.size())
+		{
+			tilesets.remove(index);
+			tilesetsAlphaKeys.remove(index);
+		}
+		tilesets.add(index, tileset);
+		tilesetsAlphaKeys.add(index, alphaKey);
 	}
 }

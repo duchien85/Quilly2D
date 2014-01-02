@@ -1,6 +1,9 @@
 package com.quilly2d.editor.core;
 
-public class Q2DTile
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class Q2DTile implements Serializable
 {
 	private int		indexX				= 0;
 	private int		indexY				= 0;
@@ -46,18 +49,14 @@ public class Q2DTile
 		return indexX;
 	}
 
-	public void setIndexX(int indexX)
-	{
-		this.indexX = indexX;
-	}
-
 	public int getIndexY()
 	{
 		return indexY;
 	}
 
-	public void setIndexY(int indexY)
+	public void setIndex(int indexX, int indexY)
 	{
+		this.indexX = indexX;
 		this.indexY = indexY;
 	}
 
@@ -76,19 +75,9 @@ public class Q2DTile
 		return tileIndex;
 	}
 
-	public void setTileIndex(int tileIndex)
-	{
-		this.tileIndex = tileIndex;
-	}
-
 	public double getTileIndexX()
 	{
 		return tileIndexX;
-	}
-
-	public void setTileIndexX(double tileIndexX)
-	{
-		this.tileIndexX = tileIndexX;
 	}
 
 	public double getTileIndexY()
@@ -96,27 +85,29 @@ public class Q2DTile
 		return tileIndexY;
 	}
 
-	public void setTileIndexY(double tileIndexY)
+	public void setTileIndex(int tileIndex, double tileIndexX, double tileIndexY)
 	{
+		this.tileIndex = tileIndex;
+		this.tileIndexX = tileIndexX;
 		this.tileIndexY = tileIndexY;
 	}
 
-	public boolean isHasCollision()
+	public boolean hasCollision()
 	{
 		return hasCollision;
 	}
 
-	public void setHasCollision(boolean hasCollision)
+	public void setCollision(boolean hasCollision)
 	{
 		this.hasCollision = hasCollision;
 	}
 
-	public boolean isHasAnimation()
+	public boolean hasAnimation()
 	{
 		return hasAnimation;
 	}
 
-	public void setHasAnimation(boolean hasAnimation)
+	public void setAnimation(boolean hasAnimation)
 	{
 		this.hasAnimation = hasAnimation;
 	}
@@ -146,19 +137,15 @@ public class Q2DTile
 		return width;
 	}
 
-	public void setWidth(int frameWidth)
-	{
-		this.width = frameWidth;
-	}
-
 	public int getHeight()
 	{
 		return height;
 	}
 
-	public void setHeight(int frameHeight)
+	public void setSize(int width, int height)
 	{
-		this.height = frameHeight;
+		this.width = width;
+		this.height = height;
 	}
 
 	public int getNumColumns()
