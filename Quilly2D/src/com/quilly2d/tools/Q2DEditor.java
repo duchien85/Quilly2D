@@ -13,6 +13,7 @@ import java.awt.image.ImageProducer;
 import java.awt.image.RGBImageFilter;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,8 +29,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.quilly2d.editor.core.Q2DEditorMenubar;
 import com.quilly2d.editor.core.Q2DEditorSplitPane;
@@ -275,7 +278,8 @@ public enum Q2DEditor
 
 	private BufferedImage makeColorTransparent(BufferedImage im, final int alphaRGB)
 	{
-		ImageFilter filter = new RGBImageFilter() {
+		ImageFilter filter = new RGBImageFilter()
+		{
 			public int	markerRGB	= alphaRGB | 0xFF000000;
 
 			public final int filterRGB(int x, int y, int rgb)
@@ -552,60 +556,60 @@ public enum Q2DEditor
 
 		switch (pencilMode)
 		{
-		case NORMAL:
-		case ADVANCED:
-			if (isFillModeActive)
-			{
-				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-				for (int x = 0; x < maxX; x += pencil.getSizeX())
-					for (int y = 0; y < maxY; y += pencil.getSizeY())
-						initMapTilesFromPencil(x, y);
-			}
-			else
-				initMapTilesFromPencil(indexX, indexY);
-			break;
-		case COLLISION:
-			for (int x = 0; x < pencil.getSizeX(); ++x)
-				for (int y = 0; y < pencil.getSizeY(); ++y)
+			case NORMAL:
+			case ADVANCED:
+				if (isFillModeActive)
 				{
-					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
 					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-					if ((indexX + x) < maxX && (indexY + y) < maxY)
-					{
-						Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
-						if (result == null)
-						{
-							result = new Q2DTile();
-							result.setIndex(indexX + x, indexY + y);
-							result.setLayer(currentLayer);
-						}
-						result.setCollision(true);
-						world.getMap().setTile(result);
-					}
+					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+					for (int x = 0; x < maxX; x += pencil.getSizeX())
+						for (int y = 0; y < maxY; y += pencil.getSizeY())
+							initMapTilesFromPencil(x, y);
 				}
-			break;
-		case ANIMATION:
-			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-			int sizeX = animationWidth / getTileSize() - 1;
-			int sizeY = animationWidth / getTileSize() - 1;
-			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
-			{
-				Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
-				if (tile == null)
-					tile = new Q2DTile();
-				tile.setIndex(indexX, indexY);
-				tile.setLayer(currentLayer);
-				tile.setAnimationSpritePath(animationSpritePath);
-				tile.setNumColumns(animationNumColumns);
-				tile.setNumRows(animationNumRows);
-				tile.setAnimationsPerSecond(animationsPerSecond);
-				tile.setSize(animationWidth, animationHeight);
-				tile.setAnimation(true);
-				world.getMap().setTile(tile);
-			}
-			break;
+				else
+					initMapTilesFromPencil(indexX, indexY);
+				break;
+			case COLLISION:
+				for (int x = 0; x < pencil.getSizeX(); ++x)
+					for (int y = 0; y < pencil.getSizeY(); ++y)
+					{
+						int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+						int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+						if ((indexX + x) < maxX && (indexY + y) < maxY)
+						{
+							Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
+							if (result == null)
+							{
+								result = new Q2DTile();
+								result.setIndex(indexX + x, indexY + y);
+								result.setLayer(currentLayer);
+							}
+							result.setCollision(true);
+							world.getMap().setTile(result);
+						}
+					}
+				break;
+			case ANIMATION:
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+				int sizeX = animationWidth / getTileSize() - 1;
+				int sizeY = animationWidth / getTileSize() - 1;
+				if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+				{
+					Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
+					if (tile == null)
+						tile = new Q2DTile();
+					tile.setIndex(indexX, indexY);
+					tile.setLayer(currentLayer);
+					tile.setAnimationSpritePath(animationSpritePath);
+					tile.setNumColumns(animationNumColumns);
+					tile.setNumRows(animationNumRows);
+					tile.setAnimationsPerSecond(animationsPerSecond);
+					tile.setSize(animationWidth, animationHeight);
+					tile.setAnimation(true);
+					world.getMap().setTile(tile);
+				}
+				break;
 		}
 
 		splitPane.onPencilPaste();
@@ -686,7 +690,8 @@ public enum Q2DEditor
 	private void initAnimationTimer()
 	{
 		Timer timer = new Timer(true);
-		timer.schedule(new TimerTask() {
+		timer.schedule(new TimerTask()
+		{
 			@Override
 			public void run()
 			{
@@ -710,15 +715,21 @@ public enum Q2DEditor
 	{
 		try
 		{
-			FileOutputStream fileOut = new FileOutputStream("resources/maps/" + getWorldName() + ".q2dmap");
-			ObjectOutputStream out = new ObjectOutputStream(fileOut);
-			out.writeObject(world);
-			out.close();
-			fileOut.close();
+			final JFileChooser chooser = new JFileChooser("resources");
+			chooser.setSelectedFile(new File(getWorldName() + ".q2dmap"));
+			int returnVal = chooser.showSaveDialog(splitPane);
+			if (returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				FileOutputStream fileOut = new FileOutputStream(chooser.getSelectedFile().getAbsolutePath());
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(world);
+				out.close();
+				fileOut.close();
+			}
 		}
 		catch (IOException i)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			i.printStackTrace();
 		}
 	}
@@ -727,60 +738,67 @@ public enum Q2DEditor
 	{
 		try
 		{
-			FileInputStream fileIn = new FileInputStream("resources/maps/" + worldName + ".q2dmap");
-			ObjectInputStream in = new ObjectInputStream(fileIn);
-			Q2DWorld loadedWorld = (Q2DWorld) in.readObject();
-			in.close();
-			fileIn.close();
+			final JFileChooser chooser = new JFileChooser("resources");
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("*.q2dmap", "q2dmap");
+			chooser.setFileFilter(filter);
+			int returnVal = chooser.showOpenDialog(splitPane);
+			if (returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				FileInputStream fileIn = new FileInputStream(chooser.getSelectedFile().getAbsolutePath());
+				ObjectInputStream in = new ObjectInputStream(fileIn);
+				Q2DWorld loadedWorld = (Q2DWorld) in.readObject();
+				in.close();
+				fileIn.close();
 
-			history.clear();
-			imgCache.clear();
-			tilesetAlphaKeys.clear();
-			propChangeSupport.firePropertyChange(PROPERTY_MAP_NAME, "", loadedWorld.getName());
-			setMapWidth(loadedWorld.getMap().getWidth());
-			setMapHeight(loadedWorld.getMap().getHeight());
-			setNumLayers(loadedWorld.getMap().getNumLayers());
-			Collection<Q2DTile> tiles = loadedWorld.getMap().getTiles();
-			Iterator<Q2DTile> iterator = tiles.iterator();
-			while (iterator.hasNext())
-			{
-				Q2DTile tile = iterator.next();
-				if (tile.hasAnimation())
-					setAnimationData(tile.getAnimationSpritePath(), tile.getWidth(), tile.getHeight(), tile.getNumColumns(), tile.getNumRows(), tile.getAnimationsPerSecond());
-			}
-			setCurrentLayer(-1);
-			int i = 0;
-			String tileset = loadedWorld.getTileset(i);
-			while (tileset != null)
-			{
-				setTileset(i, tileset);
-				if (loadedWorld.getTilesetAlphaKey(tileset) != null)
-					setAlphaColor(tileset, loadedWorld.getTilesetAlphaKey(tileset));
-				++i;
-				tileset = loadedWorld.getTileset(i);
-			}
-			setCurrentTileSetIndex(0);
-			setPencilSize(1, 1);
-			setPencilMode(Q2DPencilMode.NORMAL);
-			setTileSize(loadedWorld.getMap().getTileSize());
-			setWorldBackgroundMusic(loadedWorld.getBackgroundMusic());
-			setWorldName(loadedWorld.getName());
+				history.clear();
+				imgCache.clear();
+				tilesetAlphaKeys.clear();
+				propChangeSupport.firePropertyChange(PROPERTY_MAP_NAME, "", loadedWorld.getName());
+				setMapWidth(loadedWorld.getMap().getWidth());
+				setMapHeight(loadedWorld.getMap().getHeight());
+				setNumLayers(loadedWorld.getMap().getNumLayers());
+				Collection<Q2DTile> tiles = loadedWorld.getMap().getTiles();
+				Iterator<Q2DTile> iterator = tiles.iterator();
+				while (iterator.hasNext())
+				{
+					Q2DTile tile = iterator.next();
+					if (tile.hasAnimation())
+						setAnimationData(tile.getAnimationSpritePath(), tile.getWidth(), tile.getHeight(), tile.getNumColumns(), tile.getNumRows(), tile.getAnimationsPerSecond());
+				}
+				setCurrentLayer(-1);
+				int i = 0;
+				String tileset = loadedWorld.getTileset(i);
+				while (tileset != null)
+				{
+					setTileset(i, tileset);
+					if (loadedWorld.getTilesetAlphaKey(tileset) != null)
+						setAlphaColor(tileset, loadedWorld.getTilesetAlphaKey(tileset));
+					++i;
+					tileset = loadedWorld.getTileset(i);
+				}
+				setCurrentTileSetIndex(0);
+				setPencilSize(1, 1);
+				setPencilMode(Q2DPencilMode.NORMAL);
+				setTileSize(loadedWorld.getMap().getTileSize());
+				setWorldBackgroundMusic(loadedWorld.getBackgroundMusic());
+				setWorldName(loadedWorld.getName());
 
-			world = loadedWorld;
-			if (splitPane != null)
-			{
-				splitPane.onPencilPaste();
-				splitPane.repaint();
+				world = loadedWorld;
+				if (splitPane != null)
+				{
+					splitPane.onPencilPaste();
+					splitPane.repaint();
+				}
 			}
 		}
 		catch (IOException i)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			i.printStackTrace();
 		}
 		catch (ClassNotFoundException c)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			c.printStackTrace();
 		}
 	}

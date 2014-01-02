@@ -157,7 +157,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		final JTextField txt = new JTextField(20);
 
-		txt.getDocument().addDocumentListener(new DocumentListener() {
+		txt.getDocument().addDocumentListener(new DocumentListener()
+		{
 			@Override
 			public void removeUpdate(DocumentEvent event)
 			{
@@ -201,7 +202,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 				catch (NumberFormatException e)
 				{
 					JOptionPane.showMessageDialog(txtWidth, "You must enter a correct numeric value for \"width\" and \"height\"", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
-					SwingUtilities.invokeLater(new Runnable() {
+					SwingUtilities.invokeLater(new Runnable()
+					{
 						@Override
 						public void run()
 						{
@@ -215,7 +217,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			}
 		});
 
-		txt.addFocusListener(new FocusListener() {
+		txt.addFocusListener(new FocusListener()
+		{
 			@Override
 			public void focusLost(FocusEvent event)
 			{
@@ -227,6 +230,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 						txt.setText(Q2DEditor.DEFAULT_WORLD_NAME);
 						txt.setForeground(Color.GRAY);
 					}
+					else
+						txt.setForeground(Color.BLACK);
 				}
 				else if (txt.equals(txtWidth))
 					txt.setText("" + Q2DEditor.INSTANCE.getMapWidth());
@@ -255,7 +260,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	private JButton createButton()
 	{
 		final JButton btn = new JButton("Browse");
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent arg0)
@@ -305,7 +311,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	{
 		final JRadioButton btn = new JRadioButton("" + (tileset + 1));
 		btn.setBackground(Color.WHITE);
-		btn.addActionListener(new ActionListener() {
+		btn.addActionListener(new ActionListener()
+		{
 
 			@Override
 			public void actionPerformed(ActionEvent event)
@@ -337,7 +344,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		slider.setPaintLabels(true);
 		slider.setBackground(Color.WHITE);
 
-		slider.addChangeListener(new ChangeListener() {
+		slider.addChangeListener(new ChangeListener()
+		{
 
 			@Override
 			public void stateChanged(ChangeEvent event)
@@ -529,10 +537,17 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	public void propertyChange(final PropertyChangeEvent evt)
 	{
 		if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_NAME))
+		{
 			txtName.setText((String) evt.getNewValue());
+			if (Q2DEditor.DEFAULT_WORLD_NAME.equals(evt.getNewValue()))
+				txtName.setForeground(Color.GRAY);
+			else
+				txtName.setForeground(Color.BLACK);
+		}
 		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH) && !txtWidth.isFocusOwner())
 		{
-			SwingUtilities.invokeLater(new Runnable() {
+			SwingUtilities.invokeLater(new Runnable()
+			{
 				@Override
 				public void run()
 				{
@@ -542,7 +557,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		}
 		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT) && !txtHeight.isFocusOwner())
 		{
-			SwingUtilities.invokeLater(new Runnable() {
+			SwingUtilities.invokeLater(new Runnable()
+			{
 				@Override
 				public void run()
 				{
