@@ -28,16 +28,16 @@ public class Q2DPencil
 		return sizeY;
 	}
 
-	private String getMapKey(int indexX, int indexY)
-	{
-		return indexX + "#" + indexY;
-	}
-
 	public void setSize(int sizeX, int sizeY)
 	{
 		indexMap.clear();
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
+	}
+
+	private String getMapKey(int indexX, int indexY)
+	{
+		return indexX + "#" + indexY;
 	}
 
 	public Q2DTileIndex getTileIndex(int indexX, int indexY)
