@@ -682,5 +682,24 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			else
 				btnSelectLayer.get((int) evt.getNewValue()).setSelected(true);
 		}
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_PENCIL_MODE))
+		{
+			Q2DPencilMode newValue = (Q2DPencilMode) evt.getNewValue();
+			switch (newValue)
+			{
+			case NORMAL:
+				btnPencilNormal.setSelected(true);
+				break;
+			case ADVANCED:
+				btnPencilAdvanced.setSelected(true);
+				break;
+			case ANIMATION:
+				btnPencilAnimation.setSelected(true);
+				break;
+			case COLLISION:
+				btnPencilCollision.setSelected(true);
+				break;
+			}
+		}
 	}
 }

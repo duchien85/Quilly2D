@@ -1,6 +1,7 @@
 package com.quilly2d.editor.core;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,6 +77,11 @@ public class Q2DMap implements Serializable
 		if (tiles.containsKey(key))
 			return tiles.get(key);
 		return null;
+	}
+
+	public Collection<Q2DTile> getTiles()
+	{
+		return tiles.values();
 	}
 
 	public void setTile(Q2DTile tile)

@@ -2,22 +2,24 @@ package com.quilly2d.editor.core;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class Q2DWorld implements Serializable
 {
-	private String			name				= null;
-	private String			music				= null;
-	private List<String>	tilesets			= null;
-	private List<String>	tilesetsAlphaKeys	= null;
-	private Q2DMap			map					= null;
+	private String					name				= null;
+	private String					music				= null;
+	private List<String>			tilesets			= null;
+	private Map<String, Integer>	tilesetsAlphaKeys	= null;
+	private Q2DMap					map					= null;
 
 	public Q2DWorld(String name, int width, int height, int numLayers, int tileSize)
 	{
 		this.name = name;
 		tilesets = new ArrayList<String>();
-		tilesetsAlphaKeys = new ArrayList<String>();
+		tilesetsAlphaKeys = new HashMap<String, Integer>();
 		map = new Q2DMap(width, height, numLayers, tileSize);
 	}
 
@@ -27,9 +29,9 @@ public class Q2DWorld implements Serializable
 		tilesets = new ArrayList<String>();
 		for (String tileset : toCopy.tilesets)
 			tilesets.add(tileset);
-		tilesetsAlphaKeys = new ArrayList<String>();
-		for (String tilesetAlphaKey : toCopy.tilesetsAlphaKeys)
-			tilesetsAlphaKeys.add(tilesetAlphaKey);
+		tilesetsAlphaKeys = new HashMap<String, Integer>();
+		for (String key : toCopy.tilesetsAlphaKeys.keySet())
+			tilesetsAlphaKeys.put(key, toCopy.tilesetsAlphaKeys.get(key));
 		map = new Q2DMap(toCopy.map);
 	}
 
@@ -75,7 +77,19 @@ public class Q2DWorld implements Serializable
 		return null;
 	}
 
-	public void setTileset(int index, String tileset, String alphaKey)
+	public Integer getTilesetAlphaKey(String tileset)
+	{
+		if (tilesetsAlphaKeys.containsKey(tileset))
+			return tilesetsAlphaKeys.get(tileset);
+		return null;
+	}
+
+	public void setTilesetAlphaKey(String tileset, Integer alphaKey)
+	{
+		tilesetsAlphaKeys.put(tileset, alphaKey);
+	}
+
+	public void setTileset(int index, String tileset, Integer alphaKey)
 	{
 		if (index < tilesets.size())
 		{
@@ -83,6 +97,7 @@ public class Q2DWorld implements Serializable
 			tilesetsAlphaKeys.remove(index);
 		}
 		tilesets.add(index, tileset);
-		tilesetsAlphaKeys.add(index, alphaKey);
+		if (alphaKey != null)
+			tilesetsAlphaKeys.put(tileset, alphaKey);
 	}
 }

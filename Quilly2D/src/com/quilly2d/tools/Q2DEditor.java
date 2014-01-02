@@ -1,10 +1,10 @@
 package com.quilly2d.tools;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.FilteredImageSource;
@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -45,6 +46,7 @@ public enum Q2DEditor
 	// editor specific data
 	public static final String			PROPERTY_PENCIL_SIZE_X		= "pencilSizeX";
 	public static final String			PROPERTY_PENCIL_SIZE_Y		= "pencilSizeY";
+	public static final String			PROPERTY_PENCIL_MODE		= "pencilMode";
 	public static final String			PROPERTY_PENCIL_TILE_INDEX	= "pencilTileIndex";
 	public static final String			PROPERTY_NUM_LAYERS			= "numLayers";
 	public static final String			PROPERTY_TILE_SIZE			= "tileSize";
@@ -56,6 +58,7 @@ public enum Q2DEditor
 	public static final String			PROPERTY_CURRENT_LAYER		= "currentLayer";
 	private Q2DEditorSplitPane			splitPane					= null;
 	private Map<String, BufferedImage>	imgCache					= new HashMap<String, BufferedImage>();
+	private Map<String, Integer>		tilesetAlphaKeys			= new HashMap<String, Integer>();
 	private int							currentTileIndex			= 0;
 	private int							currentLayer				= 0;
 	private Q2DPencil					pencil						= new Q2DPencil();
@@ -222,8 +225,30 @@ public enum Q2DEditor
 	public void setTileset(int index, String tileset)
 	{
 		propChangeSupport.firePropertyChange(PROPERTY_TILESET, index, tileset);
-		//TODO alphakey
-		world.setTileset(index, tileset, null);
+		if (tilesetAlphaKeys.containsKey(tileset))
+			world.setTileset(index, tileset, tilesetAlphaKeys.get(tileset));
+		else
+			world.setTileset(index, tileset, null);
+	}
+
+	private BufferedImage getOptimizedImage(Image img)
+	{
+		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+		// check if image is already optimized
+		if (img instanceof BufferedImage && ((BufferedImage) img).getColorModel().equals(gfx_config.getColorModel()))
+		{
+			return (BufferedImage) img;
+		}
+		else
+		{
+			BufferedImage new_image = gfx_config.createCompatibleImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+			g2.drawImage(img, 0, 0, null);
+			g2.dispose();
+
+			return new_image;
+		}
 	}
 
 	public BufferedImage getImage(String filePath)
@@ -238,32 +263,16 @@ public enum Q2DEditor
 		else
 		{
 			ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
-
-			GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-
-			// check if image is already optimized
-			if (icon.getImage() instanceof BufferedImage && ((BufferedImage) icon.getImage()).getColorModel().equals(gfx_config.getColorModel()))
-			{
-				imgCache.put(filePath, (BufferedImage) icon.getImage());
-				return (BufferedImage) icon.getImage();
-			}
-			else
-			{
-				BufferedImage new_image = gfx_config.createCompatibleImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-				Graphics2D g2 = (Graphics2D) new_image.getGraphics();
-				g2.drawImage(icon.getImage(), 0, 0, null);
-				g2.dispose();
-
-				imgCache.put(filePath, new_image);
-				return new_image;
-			}
+			BufferedImage img = getOptimizedImage(icon.getImage());
+			imgCache.put(filePath, img);
+			return img;
 		}
 	}
 
-	private BufferedImage makeColorTransparent(BufferedImage im, final Color color)
+	private BufferedImage makeColorTransparent(BufferedImage im, final int alphaRGB)
 	{
 		ImageFilter filter = new RGBImageFilter() {
-			public int	markerRGB	= color.getRGB() | 0xFF000000;
+			public int	markerRGB	= alphaRGB | 0xFF000000;
 
 			public final int filterRGB(int x, int y, int rgb)
 			{
@@ -276,24 +285,21 @@ public enum Q2DEditor
 		};
 
 		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-		java.awt.Image alphaImg = Toolkit.getDefaultToolkit().createImage(ip);
+		Image alphaImg = Toolkit.getDefaultToolkit().createImage(ip);
+		return getOptimizedImage(alphaImg);
+	}
 
-		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+	private void setAlphaColor(String tileset, int rgb)
+	{
+		if (!imgCache.containsKey(tileset + "_original"))
+			imgCache.put(tileset + "_original", getImage(tileset));
 
-		// check if image is already optimized
-		if (alphaImg instanceof BufferedImage && ((BufferedImage) alphaImg).getColorModel().equals(gfx_config.getColorModel()))
-		{
-			return (BufferedImage) alphaImg;
-		}
-		else
-		{
-			BufferedImage new_image = gfx_config.createCompatibleImage(alphaImg.getWidth(null), alphaImg.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g2 = (Graphics2D) new_image.getGraphics();
-			g2.drawImage(alphaImg, 0, 0, null);
-			g2.dispose();
-
-			return new_image;
-		}
+		BufferedImage img = makeColorTransparent(getImage(tileset + "_original"), rgb);
+		imgCache.put(tileset, img);
+		tilesetAlphaKeys.put(tileset, rgb);
+		world.setTilesetAlphaKey(tileset, rgb);
+		if (splitPane != null)
+			splitPane.repaint();
 	}
 
 	public void setAlphaColor(String tileset, int posX, int posY)
@@ -302,11 +308,7 @@ public enum Q2DEditor
 			imgCache.put(tileset + "_original", getImage(tileset));
 
 		BufferedImage img = getImage(tileset + "_original");
-		int rgb = img.getRGB(posX, posY);
-		img = makeColorTransparent(img, new Color(rgb));
-		imgCache.put(tileset, img);
-		if (splitPane != null)
-			splitPane.repaint();
+		setAlphaColor(tileset, img.getRGB(posX, posY));
 	}
 
 	public void initPencilSelection(int tileIndexX, int tileIndexY)
@@ -381,6 +383,7 @@ public enum Q2DEditor
 
 	public void setPencilMode(Q2DPencilMode newMode)
 	{
+		propChangeSupport.firePropertyChange(PROPERTY_PENCIL_MODE, pencilMode, newMode);
 		pencilMode = newMode;
 	}
 
@@ -716,34 +719,45 @@ public enum Q2DEditor
 		}
 	}
 
-	public void load()
+	public void load(String worldName)
 	{
 		try
 		{
-			//FileInputStream fileIn = new FileInputStream("resources/maps/" + getWorldName() + ".q2dmap");
-			FileInputStream fileIn = new FileInputStream("resources/maps/Blubsi.q2dmap");
+			FileInputStream fileIn = new FileInputStream("resources/maps/" + worldName + ".q2dmap");
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 			Q2DWorld loadedWorld = (Q2DWorld) in.readObject();
 			in.close();
 			fileIn.close();
 
 			history.clear();
+			imgCache.clear();
+			tilesetAlphaKeys.clear();
 			propChangeSupport.firePropertyChange(PROPERTY_MAP_NAME, "", loadedWorld.getName());
 			setMapWidth(loadedWorld.getMap().getWidth());
 			setMapHeight(loadedWorld.getMap().getHeight());
 			setNumLayers(loadedWorld.getMap().getNumLayers());
-			//TODO load animations
-			//setAnimationData(path, width, height, numColumns, numRows, fps);
+			Collection<Q2DTile> tiles = loadedWorld.getMap().getTiles();
+			Iterator<Q2DTile> iterator = tiles.iterator();
+			while (iterator.hasNext())
+			{
+				Q2DTile tile = iterator.next();
+				if (tile.hasAnimation())
+					setAnimationData(tile.getAnimationSpritePath(), tile.getWidth(), tile.getHeight(), tile.getNumColumns(), tile.getNumRows(), tile.getAnimationsPerSecond());
+			}
 			setCurrentLayer(-1);
 			int i = 0;
-			while (loadedWorld.getTileset(i) != null)
+			String tileset = loadedWorld.getTileset(i);
+			while (tileset != null)
 			{
-				setTileset(i, loadedWorld.getTileset(i));
+				setTileset(i, tileset);
+				if (loadedWorld.getTilesetAlphaKey(tileset) != null)
+					setAlphaColor(tileset, loadedWorld.getTilesetAlphaKey(tileset));
 				++i;
+				tileset = loadedWorld.getTileset(i);
 			}
 			setCurrentTileSetIndex(0);
-			//TODO reset pencil to normal
 			setPencilSize(1, 1);
+			setPencilMode(Q2DPencilMode.NORMAL);
 			setTileSize(loadedWorld.getMap().getTileSize());
 			setWorldBackgroundMusic(loadedWorld.getBackgroundMusic());
 			setWorldName(loadedWorld.getName());

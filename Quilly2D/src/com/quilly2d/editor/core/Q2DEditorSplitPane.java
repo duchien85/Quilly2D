@@ -72,7 +72,7 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 						Q2DEditor.INSTANCE.save();
 						break;
 					case KeyEvent.VK_L:
-						Q2DEditor.INSTANCE.load();
+						Q2DEditor.INSTANCE.load("Blubsi");
 						break;
 					}
 				}
