@@ -4,7 +4,9 @@ import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Image;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
@@ -13,6 +15,7 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +31,13 @@ import com.quilly2d.sound.Q2DSound;
 
 public abstract class Q2DApplication
 {
-	private JFrame					frame			= null;
-	private Q2DMainPanel			mainPanel		= null;
-	private Map<String, ImageIcon>	imgCache		= new HashMap<String, ImageIcon>();
-	private Map<String, Font>		fontCache		= new HashMap<String, Font>();
-	private boolean					isFullScreen	= false;
-	private int						mouseX			= 0;
-	private int						mouseY			= 0;
+	private JFrame						frame			= null;
+	private Q2DMainPanel				mainPanel		= null;
+	private Map<String, BufferedImage>	imgCache		= new HashMap<String, BufferedImage>();
+	private Map<String, Font>			fontCache		= new HashMap<String, Font>();
+	private boolean						isFullScreen	= false;
+	private int							mouseX			= 0;
+	private int							mouseY			= 0;
 
 	public Q2DApplication(String windowTitle, int width, int height, boolean fullscreen, int fps, int numLayers, boolean useTrippleBuffering)
 	{
@@ -129,7 +132,7 @@ public abstract class Q2DApplication
 		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 	}
 
-	private ImageIcon getImage(String filePath)
+	private BufferedImage getImage(String filePath)
 	{
 		if (imgCache.containsKey(filePath))
 		{
@@ -138,15 +141,32 @@ public abstract class Q2DApplication
 		else
 		{
 			ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
-			imgCache.put(filePath, icon);
-			return icon;
+
+			GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+			// check if image is already optimized
+			if (icon.getImage() instanceof BufferedImage && ((BufferedImage) icon.getImage()).getColorModel().equals(gfx_config.getColorModel()))
+			{
+				imgCache.put(filePath, (BufferedImage) icon.getImage());
+				return (BufferedImage) icon.getImage();
+			}
+			else
+			{
+				BufferedImage new_image = gfx_config.createCompatibleImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+				Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+				g2.drawImage(icon.getImage(), 0, 0, null);
+				g2.dispose();
+
+				imgCache.put(filePath, new_image);
+				return new_image;
+			}
 		}
 	}
 
 	public Q2DSprite createSprite(String filePath, int numColumns, int numRows, double animationsPerSecond, int layer)
 	{
-		ImageIcon icon = getImage(filePath);
-		Q2DSprite result = new Q2DSprite(icon.getImage(), icon.getIconWidth(), icon.getIconHeight(), numColumns, numRows, animationsPerSecond, layer);
+		BufferedImage img = getImage(filePath);
+		Q2DSprite result = new Q2DSprite(img, img.getWidth(null), img.getHeight(null), numColumns, numRows, animationsPerSecond, layer);
 		mainPanel.addSprite(result, layer);
 
 		return result;
@@ -202,7 +222,7 @@ public abstract class Q2DApplication
 		}
 		catch (Exception e)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			e.printStackTrace();
 		}
 
@@ -218,16 +238,16 @@ public abstract class Q2DApplication
 	{
 		try
 		{
-			ImageIcon icon = getImage(filePath);
-			Constructor<? extends Q2DEntity> constructor = type.getConstructor(Image.class, int.class, int.class, int.class, int.class, double.class, int.class);
-			Q2DEntity newInstance = constructor.newInstance(icon.getImage(), icon.getIconWidth(), icon.getIconHeight(), numColumns, numRows, animationsPerSecond, layer);
+			BufferedImage img = getImage(filePath);
+			Constructor<? extends Q2DEntity> constructor = type.getConstructor(BufferedImage.class, int.class, int.class, int.class, int.class, double.class, int.class);
+			Q2DEntity newInstance = constructor.newInstance(img, img.getWidth(null), img.getHeight(null), numColumns, numRows, animationsPerSecond, layer);
 
 			mainPanel.addSprite(newInstance, layer);
 			return newInstance;
 		}
 		catch (Exception e)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			e.printStackTrace();
 		}
 
@@ -298,7 +318,8 @@ public abstract class Q2DApplication
 	private void addKeyEventDispatcher()
 	{
 		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		manager.addKeyEventDispatcher(new KeyEventDispatcher() {
+		manager.addKeyEventDispatcher(new KeyEventDispatcher()
+		{
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent event)
 			{
@@ -314,7 +335,8 @@ public abstract class Q2DApplication
 
 	private void addMouseListener()
 	{
-		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
+		{
 
 			@Override
 			public void eventDispatched(AWTEvent event)
@@ -329,7 +351,8 @@ public abstract class Q2DApplication
 				}
 			}
 		}, AWTEvent.MOUSE_EVENT_MASK);
-		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
+		{
 
 			@Override
 			public void eventDispatched(AWTEvent event)
