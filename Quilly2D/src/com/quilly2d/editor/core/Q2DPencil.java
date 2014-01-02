@@ -3,10 +3,9 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.quilly2d.editor.enums.Q2DPencilMode;
 import com.quilly2d.graphics.Q2DSprite;
@@ -14,13 +13,13 @@ import com.quilly2d.tools.Q2DEditor;
 
 public class Q2DPencil
 {
-	private int										sizeX		= 0;
-	private int										sizeY		= 0;
-	private Map<Integer, Map<Integer, TileIndex>>	indexMap	= null;
+	private int						sizeX		= 0;
+	private int						sizeY		= 0;
+	private Map<String, TileIndex>	indexMap	= null;
 
 	public Q2DPencil()
 	{
-		indexMap = new TreeMap<Integer, Map<Integer, TileIndex>>();
+		indexMap = new HashMap<String, TileIndex>();
 		setSize(1, 1);
 	}
 
@@ -34,81 +33,68 @@ public class Q2DPencil
 		return sizeY;
 	}
 
+	private String getMapKey(int indexX, int indexY)
+	{
+		return indexX + "#" + indexY;
+	}
+
 	public void setSize(int sizeX, int sizeY)
 	{
 		indexMap.clear();
 
-		for (int x = 0; x < sizeX; ++x)
-		{
-			Map<Integer, TileIndex> values = new TreeMap<Integer, TileIndex>();
-			indexMap.put(x, values);
-			for (int y = 0; y < sizeY; ++y)
-				values.put(y, new TileIndex());
-		}
+		//		for (int x = 0; x < sizeX; ++x)
+		//			for (int y = 0; y < sizeY; ++y)
+		//				indexMap.put(getMapKey(x, y), new TileIndex());
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 	}
 
 	public int getTilesetIndex(int indexX, int indexY)
 	{
-		if (indexMap.containsKey(indexX))
-		{
-			Map<Integer, TileIndex> map = indexMap.get(indexX);
-			if (map.containsKey(indexY))
-				return map.get(indexY).TILESET_INDEX;
-		}
+		String key = getMapKey(indexX, indexY);
+		if (indexMap.containsKey(key))
+			return indexMap.get(key).TILESET_INDEX;
 		return -1;
 	}
 
 	public double getTileIndexX(int indexX, int indexY)
 	{
-		if (indexMap.containsKey(indexX))
-		{
-			Map<Integer, TileIndex> map = indexMap.get(indexX);
-			if (map.containsKey(indexY))
-				return map.get(indexY).X;
-		}
+		String key = getMapKey(indexX, indexY);
+		if (indexMap.containsKey(key))
+			return indexMap.get(key).X;
 		return -1;
 	}
 
 	public double getTileIndexY(int indexX, int indexY)
 	{
-		if (indexMap.containsKey(indexX))
-		{
-			Map<Integer, TileIndex> map = indexMap.get(indexX);
-			if (map.containsKey(indexY))
-				return map.get(indexY).Y;
-		}
+		String key = getMapKey(indexX, indexY);
+		if (indexMap.containsKey(key))
+			return indexMap.get(key).Y;
 		return -1;
 	}
 
 	public void setTileIndex(int indexX, int indexY, int tileIndex, double tileIndexX, double tileIndexY)
 	{
-		if (indexMap.containsKey(indexX))
-		{
-			Map<Integer, TileIndex> map = indexMap.get(indexX);
-			if (map.containsKey(indexY))
-			{
-				TileIndex index = map.get(indexY);
-				index.TILESET_INDEX = tileIndex;
-				index.X = tileIndexX;
-				index.Y = tileIndexY;
-			}
-		}
+		String key = getMapKey(indexX, indexY);
+		TileIndex index = null;
+		if (indexMap.containsKey(key))
+			index = indexMap.get(key);
+		else
+			index = new TileIndex();
+		index.TILESET_INDEX = tileIndex;
+		index.X = tileIndexX;
+		index.Y = tileIndexY;
+		indexMap.put(getMapKey(indexX, indexY), index);
 	}
 
 	public void initPencilIndex()
 	{
 		if (sizeX != 0 && sizeY != 0)
 		{
-			TileIndex startIndex = indexMap.get(0).get(0);
+			TileIndex startIndex = indexMap.get(getMapKey(0, 0));
 			for (int x = 0; x < sizeX; ++x)
-			{
 				for (int y = 0; y < sizeY; ++y)
-				{
 					setTileIndex(x, y, Q2DEditor.INSTANCE.getCurrentTileSetIndex(), startIndex.X + x, startIndex.Y + y);
-				}
-			}
 		}
 	}
 
@@ -131,18 +117,22 @@ public class Q2DPencil
 				{
 					for (int y = 0; y < sizeY; ++y)
 					{
-						int drawX = x * tileSize;
-						int drawY = y * tileSize;
-						TileIndex tileIndex = indexMap.get(x).get(y);
-						if (tileIndex.X != -1 && tileIndex.Y != -1)
+						String key = getMapKey(x, y);
+						if (indexMap.containsKey(key))
 						{
-							String tileSet = null;
-							if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
-								tileSet = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
-							else
-								tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-							Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
-							g2.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
+							int drawX = x * tileSize;
+							int drawY = y * tileSize;
+							TileIndex tileIndex = indexMap.get(key);
+							if (tileIndex.X != -1 && tileIndex.Y != -1)
+							{
+								String tileset = null;
+								if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ADVANCED)
+									tileset = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
+								else
+									tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+								BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
+								g2.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
+							}
 						}
 					}
 				}
@@ -190,16 +180,12 @@ public class Q2DPencil
 			Color currentColor = graphics.getColor();
 
 			graphics.setColor(new Color(180, 160, 0, 128));
-			for (Integer x : indexMap.keySet())
+			for (String key : indexMap.keySet())
 			{
-				Map<Integer, TileIndex> map = indexMap.get(x);
-				for (Integer y : map.keySet())
+				TileIndex tileIndex = indexMap.get(key);
+				if (tileIndex.X != -1 && tileIndex.Y != -1 && (Q2DEditor.INSTANCE.getCurrentTileSetIndex() == tileIndex.TILESET_INDEX || tileIndex.TILESET_INDEX == -1))
 				{
-					TileIndex tileIndex = map.get(y);
-					if (tileIndex.X != -1 && tileIndex.Y != -1 && (Q2DEditor.INSTANCE.getCurrentTileSetIndex() == tileIndex.TILESET_INDEX || tileIndex.TILESET_INDEX == -1))
-					{
-						graphics.fillRect((int) (offsetX + tileIndex.X * tileSize), (int) (offsetY + tileIndex.Y * tileSize), tileSize, tileSize);
-					}
+					graphics.fillRect((int) (offsetX + tileIndex.X * tileSize), (int) (offsetY + tileIndex.Y * tileSize), tileSize, tileSize);
 				}
 			}
 

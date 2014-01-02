@@ -3,7 +3,6 @@ package com.quilly2d.editor.core;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -11,6 +10,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -281,7 +281,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 						}
 						else
 						{
-							Q2DEditor.INSTANCE.setTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex(), path);
+							Q2DEditor.INSTANCE.setTileset(Q2DEditor.INSTANCE.getCurrentTileSetIndex(), path);
 							lblTilesetPath.setSize(150, lblTilesetPath.getHeight());
 							lblTilesetPath.setText("Tileset: " + chooser.getSelectedFile().getName());
 							resetPencil();
@@ -299,17 +299,17 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		return btn;
 	}
 
-	private JRadioButton createTilesetSelectionButton(final int tileSet)
+	private JRadioButton createTilesetSelectionButton(final int tileset)
 	{
-		final JRadioButton btn = new JRadioButton("" + (tileSet + 1));
+		final JRadioButton btn = new JRadioButton("" + (tileset + 1));
 		btn.setBackground(Color.WHITE);
 		btn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent event)
 			{
-				Q2DEditor.INSTANCE.setCurrentTileSetIndex(tileSet);
-				String tilesetName = Q2DEditor.INSTANCE.getTileSet(tileSet);
+				Q2DEditor.INSTANCE.setCurrentTileSetIndex(tileset);
+				String tilesetName = Q2DEditor.INSTANCE.getTileSet(tileset);
 				if (tilesetName != null)
 					lblTilesetPath.setText("Tileset: " + tilesetName.substring(tilesetName.lastIndexOf("\\") + 1));
 				else
@@ -378,7 +378,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		Q2DEditor.INSTANCE.setPencilSize(1, 1);
 	}
 
-	private void drawGrid(Graphics graphics, Image img)
+	private void drawGrid(Graphics graphics, BufferedImage img)
 	{
 		final int tileSize = Q2DEditor.INSTANCE.getTileSize();
 		final int maxY = new Double(Math.ceil(1.0 * img.getHeight(null) / tileSize)).intValue();
@@ -399,8 +399,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	public void paintComponent(Graphics graphics)
 	{
 		super.paintComponent(graphics);
-		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		String tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+		BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
 		if (img != null)
 		{
 			graphics.drawImage(img, TILESET_OFFSET_X, TILESET_OFFSET_Y, null);
@@ -430,8 +430,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ANIMATION || Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.COLLISION)
 			return;
 
-		String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-		Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+		String tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+		BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
 		if (img != null)
 		{
 			final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
@@ -441,7 +441,7 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 			{
 				if (e.isControlDown())
 				{
-					Q2DEditor.INSTANCE.setAlphaColor(tileSet, e.getX() - TILESET_OFFSET_X, e.getY() - TILESET_OFFSET_Y);
+					Q2DEditor.INSTANCE.setAlphaColor(tileset, e.getX() - TILESET_OFFSET_X, e.getY() - TILESET_OFFSET_Y);
 				}
 				else
 				{
@@ -476,8 +476,8 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 		{
 			if (isSelectingTiles)
 			{
-				String tileSet = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-				Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+				String tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
+				BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
 				if (img != null)
 				{
 					final int maxX = img.getWidth(null) + TILESET_OFFSET_X;
@@ -500,12 +500,45 @@ public class Q2DEditorTilesetPanel extends JPanel implements MouseListener, Mous
 	}
 
 	@Override
-	public void propertyChange(PropertyChangeEvent evt)
+	public void propertyChange(final PropertyChangeEvent evt)
 	{
-		//		if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH))
-		//			txtWidth.setText("" + evt.getNewValue());
-		//		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT))
-		//			txtHeight.setText("" + evt.getNewValue());
+		if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_NAME))
+			txtName.setText((String) evt.getNewValue());
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_WIDTH) && !txtWidth.isFocusOwner())
+		{
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run()
+				{
+					txtWidth.setText("" + evt.getNewValue());
+				}
+			});
+		}
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_MAP_HEIGHT) && !txtHeight.isFocusOwner())
+		{
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run()
+				{
+					txtHeight.setText("" + evt.getNewValue());
+				}
+			});
+		}
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_TILESET_INDEX))
+			btnSelectTileset.get((int) evt.getNewValue()).setSelected(true);
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_NUM_LAYERS))
+			sliderNumLayers.setValue((int) evt.getNewValue());
+		else if (evt.getPropertyName().equals(Q2DEditor.PROPERTY_TILESET))
+		{
+			if (sliderNumTilesets.getValue() < (int) evt.getOldValue() + 1)
+				sliderNumTilesets.setValue((int) evt.getOldValue() + 1);
+			if (btnSelectTileset.get((int) evt.getOldValue()).isSelected())
+			{
+				lblTilesetPath.setSize(150, lblTilesetPath.getHeight());
+				String tilesetName = (String) evt.getNewValue();
+				lblTilesetPath.setText("Tileset: " + tilesetName.substring(tilesetName.lastIndexOf("\\") + 1));
+			}
+		}
 	}
 
 	public void onPencilPaste()

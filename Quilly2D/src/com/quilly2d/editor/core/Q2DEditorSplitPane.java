@@ -68,6 +68,12 @@ public class Q2DEditorSplitPane extends JSplitPane implements PropertyChangeList
 					case KeyEvent.VK_Z:
 						Q2DEditor.INSTANCE.setPreviousWorldVersion();
 						break;
+					case KeyEvent.VK_S:
+						Q2DEditor.INSTANCE.save();
+						break;
+					case KeyEvent.VK_L:
+						Q2DEditor.INSTANCE.load();
+						break;
 					}
 				}
 				return false;

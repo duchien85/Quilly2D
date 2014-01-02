@@ -5,12 +5,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -340,7 +340,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 					{
 						int drawX = MAP_OFFSET_X + x * tileSize;
 						int drawY = MAP_OFFSET_Y + y * tileSize;
-						if (mapTile.isHasAnimation())
+						if (mapTile.hasAnimation())
 						{
 							// animated tile
 							int fps = mapTile.getAnimationsPerSecond();
@@ -351,14 +351,14 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 						}
 						else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
 						{
-							String tileSet = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-							Image img = Q2DEditor.INSTANCE.getTileSetImage(tileSet);
+							String tileset = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
+							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
 
 							double srcX = mapTile.getTileIndexX() * tileSize;
 							double srcY = mapTile.getTileIndexY() * tileSize;
 							graphics.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
 						}
-						if (mapTile.isHasCollision())
+						if (mapTile.hasCollision())
 						{
 							((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 							Color currentColor = graphics.getColor();
