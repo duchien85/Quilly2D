@@ -31,11 +31,13 @@ import java.util.TimerTask;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.quilly2d.editor.core.Q2DEditorMenubar;
 import com.quilly2d.editor.core.Q2DEditorSplitPane;
+import com.quilly2d.editor.core.Q2DEditorTestApplication;
 import com.quilly2d.editor.core.Q2DPencil;
 import com.quilly2d.editor.core.Q2DTile;
 import com.quilly2d.editor.core.Q2DTileIndex;
@@ -278,8 +280,7 @@ public enum Q2DEditor
 
 	private BufferedImage makeColorTransparent(BufferedImage im, final int alphaRGB)
 	{
-		ImageFilter filter = new RGBImageFilter()
-		{
+		ImageFilter filter = new RGBImageFilter() {
 			public int	markerRGB	= alphaRGB | 0xFF000000;
 
 			public final int filterRGB(int x, int y, int rgb)
@@ -556,60 +557,60 @@ public enum Q2DEditor
 
 		switch (pencilMode)
 		{
-			case NORMAL:
-			case ADVANCED:
-				if (isFillModeActive)
-				{
-					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-					for (int x = 0; x < maxX; x += pencil.getSizeX())
-						for (int y = 0; y < maxY; y += pencil.getSizeY())
-							initMapTilesFromPencil(x, y);
-				}
-				else
-					initMapTilesFromPencil(indexX, indexY);
-				break;
-			case COLLISION:
-				for (int x = 0; x < pencil.getSizeX(); ++x)
-					for (int y = 0; y < pencil.getSizeY(); ++y)
-					{
-						int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
-						int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-						if ((indexX + x) < maxX && (indexY + y) < maxY)
-						{
-							Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
-							if (result == null)
-							{
-								result = new Q2DTile();
-								result.setIndex(indexX + x, indexY + y);
-								result.setLayer(currentLayer);
-							}
-							result.setCollision(true);
-							world.getMap().setTile(result);
-						}
-					}
-				break;
-			case ANIMATION:
-				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+		case NORMAL:
+		case ADVANCED:
+			if (isFillModeActive)
+			{
 				int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
-				int sizeX = animationWidth / getTileSize() - 1;
-				int sizeY = animationWidth / getTileSize() - 1;
-				if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+				int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+				for (int x = 0; x < maxX; x += pencil.getSizeX())
+					for (int y = 0; y < maxY; y += pencil.getSizeY())
+						initMapTilesFromPencil(x, y);
+			}
+			else
+				initMapTilesFromPencil(indexX, indexY);
+			break;
+		case COLLISION:
+			for (int x = 0; x < pencil.getSizeX(); ++x)
+				for (int y = 0; y < pencil.getSizeY(); ++y)
 				{
-					Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
-					if (tile == null)
-						tile = new Q2DTile();
-					tile.setIndex(indexX, indexY);
-					tile.setLayer(currentLayer);
-					tile.setAnimationSpritePath(animationSpritePath);
-					tile.setNumColumns(animationNumColumns);
-					tile.setNumRows(animationNumRows);
-					tile.setAnimationsPerSecond(animationsPerSecond);
-					tile.setSize(animationWidth, animationHeight);
-					tile.setAnimation(true);
-					world.getMap().setTile(tile);
+					int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+					int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+					if ((indexX + x) < maxX && (indexY + y) < maxY)
+					{
+						Q2DTile result = world.getMap().getTile(indexX + x, indexY + y, currentLayer);
+						if (result == null)
+						{
+							result = new Q2DTile();
+							result.setIndex(indexX + x, indexY + y);
+							result.setLayer(currentLayer);
+						}
+						result.setCollision(true);
+						world.getMap().setTile(result);
+					}
 				}
-				break;
+			break;
+		case ANIMATION:
+			int maxY = new Double(Math.ceil(1.0 * getMapHeight() / getTileSize())).intValue();
+			int maxX = new Double(Math.ceil(1.0 * getMapWidth() / getTileSize())).intValue();
+			int sizeX = animationWidth / getTileSize() - 1;
+			int sizeY = animationWidth / getTileSize() - 1;
+			if (animationSpritePath != null && indexX + sizeX < maxX && indexY + sizeY < maxY)
+			{
+				Q2DTile tile = world.getMap().getTile(indexX, indexY, currentLayer);
+				if (tile == null)
+					tile = new Q2DTile();
+				tile.setIndex(indexX, indexY);
+				tile.setLayer(currentLayer);
+				tile.setAnimationSpritePath(animationSpritePath);
+				tile.setNumColumns(animationNumColumns);
+				tile.setNumRows(animationNumRows);
+				tile.setAnimationsPerSecond(animationsPerSecond);
+				tile.setSize(animationWidth, animationHeight);
+				tile.setAnimation(true);
+				world.getMap().setTile(tile);
+			}
+			break;
 		}
 
 		splitPane.onPencilPaste();
@@ -690,8 +691,7 @@ public enum Q2DEditor
 	private void initAnimationTimer()
 	{
 		Timer timer = new Timer(true);
-		timer.schedule(new TimerTask()
-		{
+		timer.schedule(new TimerTask() {
 			@Override
 			public void run()
 			{
@@ -734,7 +734,19 @@ public enum Q2DEditor
 		}
 	}
 
-	public void load(String worldName)
+	public void test()
+	{
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run()
+			{
+				new Q2DEditorTestApplication("Test: " + world.getName(), 800, 600, 60, world.getMap().getNumLayers());
+			}
+		});
+	}
+
+	public void load()
 	{
 		try
 		{

@@ -64,7 +64,9 @@ public class Q2DEditorMenubar
 					if (item.getText().equals(ITEM_TEXT_SAVE))
 						Q2DEditor.INSTANCE.save();
 					else if (item.getText().equals(ITEM_TEXT_LOAD))
-						Q2DEditor.INSTANCE.load("Blubsi");
+						Q2DEditor.INSTANCE.load();
+					else if (item.getText().equals(ITEM_TEXT_TEST))
+						Q2DEditor.INSTANCE.test();
 					else if (item.getText().equals(ITEM_TEXT_QUIT))
 						parent.dispatchEvent(new WindowEvent(parent, WindowEvent.WINDOW_CLOSING));
 				}

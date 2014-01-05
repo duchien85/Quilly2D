@@ -1,5 +1,6 @@
 package com.quilly2d.graphics;
 
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -29,6 +30,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	private int						currentColumn			= 0;
 	private int						frameWidth				= 0;
 	private int						frameHeight				= 0;
+	private float					transparency			= 1.0f;
 	protected Rectangle				boundaries				= null;
 	private int						layer					= 0;
 	private boolean					isFlippedHorizontal		= false;
@@ -96,6 +98,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		final int sourceX = currentColumn * frameWidth;
 		final int sourceY = currentRow * frameHeight;
 
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, getTransparency()));
 		if (isFlippedHorizontal)
 			graphics.drawImage(img, boundaries.x - offsetX, boundaries.y - offsetY, boundaries.x + boundaries.width - offsetX, boundaries.y + boundaries.height - offsetY, sourceX + frameWidth, sourceY, sourceX, sourceY + frameHeight, null);
 		else
@@ -161,6 +164,16 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	public int getWidth()
 	{
 		return boundaries.width;
+	}
+
+	public float getTransparency()
+	{
+		return transparency;
+	}
+
+	public void setTransparency(float transparency)
+	{
+		this.transparency = transparency;
 	}
 
 	public int getHeight()

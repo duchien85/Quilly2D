@@ -1,5 +1,6 @@
 package com.quilly2d.core;
 
+import java.awt.AlphaComposite;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -112,6 +113,7 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 
 		}
 
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 		Iterator<Q2DText> textsIterator = textsToBeRendered.iterator();
 		while (textsIterator.hasNext())
 		{
@@ -184,7 +186,7 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 
 			lastLoopTime = System.nanoTime();
 
-			while (gameState == Q2DGameState.RUNNIG || gameState == Q2DGameState.PAUSED)
+			while ((gameState == Q2DGameState.RUNNIG || gameState == Q2DGameState.PAUSED) && isDisplayable())
 			{
 				long now = System.nanoTime();
 				final double delta = (now - lastLoopTime) / 1000000000.0;
@@ -197,7 +199,8 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 						public void run()
 						{
 							update(delta);
-							paint();
+							if (isDisplayable())
+								paint();
 						}
 					});
 				}
@@ -207,7 +210,6 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 					sleepTime = optimalTime / 1000000;
 
 				Thread.sleep(sleepTime);
-
 			}
 		}
 		catch (Exception e)
