@@ -12,6 +12,7 @@ public class Q2DEditorTestApplication extends Q2DApplication
 		super(windowTitle, width, height, false, fps, numLayers, true);
 		try
 		{
+			// TODO füge testsprite hinzu um collision zu testen und auf map herumzugehen
 			Class<?> c = Q2DApplication.class;
 			java.lang.reflect.Field field = c.getDeclaredField("frame");
 			field.setAccessible(true);
@@ -20,7 +21,7 @@ public class Q2DEditorTestApplication extends Q2DApplication
 		}
 		catch (Exception e)
 		{
-			//TODO errormsg
+			// TODO errormsg
 			e.printStackTrace();
 		}
 	}

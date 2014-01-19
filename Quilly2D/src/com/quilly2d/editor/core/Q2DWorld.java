@@ -12,6 +12,8 @@ public class Q2DWorld implements Serializable
 	private String					name				= null;
 	private String					music				= null;
 	private List<String>			tilesets			= null;
+	private List<Integer>			tilesetsWidth		= null;
+	private List<Integer>			tilesetsHeight		= null;
 	private Map<String, Integer>	tilesetsAlphaKeys	= null;
 	private Q2DMap					map					= null;
 
@@ -19,6 +21,8 @@ public class Q2DWorld implements Serializable
 	{
 		this.name = name;
 		tilesets = new ArrayList<String>();
+		tilesetsWidth = new ArrayList<Integer>();
+		tilesetsHeight = new ArrayList<Integer>();
 		tilesetsAlphaKeys = new HashMap<String, Integer>();
 		map = new Q2DMap(width, height, numLayers, tileSize);
 	}
@@ -29,6 +33,12 @@ public class Q2DWorld implements Serializable
 		tilesets = new ArrayList<String>();
 		for (String tileset : toCopy.tilesets)
 			tilesets.add(tileset);
+		tilesetsWidth = new ArrayList<Integer>();
+		for (Integer tileset : toCopy.tilesetsWidth)
+			tilesetsWidth.add(tileset);
+		tilesetsHeight = new ArrayList<Integer>();
+		for (Integer tileset : toCopy.tilesetsHeight)
+			tilesetsHeight.add(tileset);
 		tilesetsAlphaKeys = new HashMap<String, Integer>();
 		for (String key : toCopy.tilesetsAlphaKeys.keySet())
 			tilesetsAlphaKeys.put(key, toCopy.tilesetsAlphaKeys.get(key));
@@ -77,6 +87,20 @@ public class Q2DWorld implements Serializable
 		return null;
 	}
 
+	public int getNumTilesetColumns(int index)
+	{
+		if (index < tilesets.size())
+			return tilesetsWidth.get(index) / map.getTileSize();
+		return -1;
+	}
+
+	public int getNumTilesetRows(int index)
+	{
+		if (index < tilesets.size())
+			return tilesetsHeight.get(index) / map.getTileSize();
+		return -1;
+	}
+
 	public Integer getTilesetAlphaKey(String tileset)
 	{
 		if (tilesetsAlphaKeys.containsKey(tileset))
@@ -89,14 +113,18 @@ public class Q2DWorld implements Serializable
 		tilesetsAlphaKeys.put(tileset, alphaKey);
 	}
 
-	public void setTileset(int index, String tileset, Integer alphaKey)
+	public void setTileset(int index, String tileset, Integer alphaKey, int tilesetWidth, int tilesetHeight)
 	{
 		if (index < tilesets.size())
 		{
 			tilesets.remove(index);
+			tilesetsWidth.remove(index);
+			tilesetsHeight.remove(index);
 			tilesetsAlphaKeys.remove(index);
 		}
 		tilesets.add(index, tileset);
+		tilesetsWidth.add(index, tilesetWidth);
+		tilesetsHeight.add(index, tilesetHeight);
 		if (alphaKey != null)
 			tilesetsAlphaKeys.put(tileset, alphaKey);
 	}

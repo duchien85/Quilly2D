@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
@@ -16,14 +17,24 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import com.quilly2d.editor.core.Q2DTile;
+import com.quilly2d.editor.core.Q2DWorld;
 import com.quilly2d.enums.Q2DGameState;
 import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.graphics.Q2DText;
@@ -132,6 +143,26 @@ public abstract class Q2DApplication
 		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 	}
 
+	private BufferedImage getOptimizedImage(Image img)
+	{
+		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+		// check if image is already optimized
+		if (img instanceof BufferedImage && ((BufferedImage) img).getColorModel().equals(gfx_config.getColorModel()))
+		{
+			return (BufferedImage) img;
+		}
+		else
+		{
+			BufferedImage new_image = gfx_config.createCompatibleImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2 = (Graphics2D) new_image.getGraphics();
+			g2.drawImage(img, 0, 0, null);
+			g2.dispose();
+
+			return new_image;
+		}
+	}
+
 	private BufferedImage getImage(String filePath)
 	{
 		if (imgCache.containsKey(filePath))
@@ -141,25 +172,9 @@ public abstract class Q2DApplication
 		else
 		{
 			ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
-
-			GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-
-			// check if image is already optimized
-			if (icon.getImage() instanceof BufferedImage && ((BufferedImage) icon.getImage()).getColorModel().equals(gfx_config.getColorModel()))
-			{
-				imgCache.put(filePath, (BufferedImage) icon.getImage());
-				return (BufferedImage) icon.getImage();
-			}
-			else
-			{
-				BufferedImage new_image = gfx_config.createCompatibleImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-				Graphics2D g2 = (Graphics2D) new_image.getGraphics();
-				g2.drawImage(icon.getImage(), 0, 0, null);
-				g2.dispose();
-
-				imgCache.put(filePath, new_image);
-				return new_image;
-			}
+			BufferedImage img = getOptimizedImage(icon.getImage());
+			imgCache.put(filePath, img);
+			return img;
 		}
 	}
 
@@ -394,5 +409,89 @@ public abstract class Q2DApplication
 	public int getCameraY()
 	{
 		return mainPanel.getCameraY();
+	}
+
+	private BufferedImage makeColorTransparent(BufferedImage im, final int alphaRGB)
+	{
+		ImageFilter filter = new RGBImageFilter()
+		{
+			public int	markerRGB	= alphaRGB | 0xFF000000;
+
+			public final int filterRGB(int x, int y, int rgb)
+			{
+				if ((rgb | 0xFF000000) == markerRGB)
+					// make pixel of specified color transparent
+					return 0x00FFFFFF & rgb;
+				else
+					return rgb;
+			}
+		};
+
+		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+		Image alphaImg = Toolkit.getDefaultToolkit().createImage(ip);
+		return getOptimizedImage(alphaImg);
+	}
+
+	public void loadQ2DWorld(String filePath)
+	{
+		try
+		{
+			InputStream fileIn = this.getClass().getResource("/" + filePath).openStream();
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+			Q2DWorld loadedWorld = (Q2DWorld) in.readObject();
+			in.close();
+			fileIn.close();
+
+			setCameraMaximumBoundaries(loadedWorld.getMap().getWidth(), loadedWorld.getMap().getHeight());
+			// TODO setMaxLayers zu Q2DApplication hinzufügen -> muss vor mapladen gesetzt werden
+			// TODO errormsg, wenn nicht genügend layers für map vorhanden sind
+			// TODO load collision correctly
+			mainPanel.setMaxLayers(loadedWorld.getMap().getNumLayers());
+			Collection<Q2DTile> tiles = loadedWorld.getMap().getTiles();
+			Iterator<Q2DTile> iterator = tiles.iterator();
+			final int tileSize = loadedWorld.getMap().getTileSize();
+			while (iterator.hasNext())
+			{
+				Q2DTile tile = iterator.next();
+				String tileset = loadedWorld.getTileset(tile.getTileIndex());
+				Q2DSprite sprite = null;
+				if (tile.hasAnimation())
+					// TODO test animation sprites
+					sprite = createSprite(tile.getAnimationSpritePath(), tile.getNumColumns(), tile.getNumRows(), tile.getAnimationsPerSecond(), tile.getLayer());
+				else
+				{
+					sprite = createSprite(tileset, loadedWorld.getNumTilesetColumns(tile.getTileIndex()), loadedWorld.getNumTilesetRows(tile.getTileIndex()), 0.0, tile.getLayer());
+					sprite.stopAnimation();
+					sprite.setAnimationIndex(tile.getTileIndexX(), tile.getTileIndexY());
+					sprite.setAnimationFrameSize(tile.getWidth(), tile.getHeight());
+				}
+				sprite.setLocation(tile.getIndexX() * tileSize, tile.getIndexY() * tileSize);
+				sprite.setSize(tile.getWidth(), tile.getHeight());
+			}
+
+			int i = 0;
+			String tileset = loadedWorld.getTileset(i);
+			while (tileset != null)
+			{
+				// TODO set alphakey for tilesets
+				if (loadedWorld.getTilesetAlphaKey(tileset) != null)
+					makeColorTransparent(imgCache.get(tileset), loadedWorld.getTilesetAlphaKey(tileset));
+				++i;
+				tileset = loadedWorld.getTileset(i);
+			}
+
+			if (loadedWorld.getBackgroundMusic() != null)
+			{
+				// TODO stop sound when test editor frame is closed
+				Q2DSound bgdsnd = createSound(loadedWorld.getBackgroundMusic());
+				bgdsnd.setLoop(true);
+				bgdsnd.play();
+			}
+		}
+		catch (Exception e)
+		{
+			// TODO errormsg
+			e.printStackTrace();
+		}
 	}
 }

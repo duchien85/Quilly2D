@@ -26,8 +26,8 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	private int						animationStartColumn	= 0;
 	private int						animationEndRow			= 0;
 	private int						animationEndColumn		= 0;
-	private int						currentRow				= 0;
-	private int						currentColumn			= 0;
+	private double					currentRow				= 0.0;
+	private double					currentColumn			= 0.0;
 	private int						frameWidth				= 0;
 	private int						frameHeight				= 0;
 	private float					transparency			= 1.0f;
@@ -95,8 +95,8 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 
 	public void paint(Graphics2D graphics, int offsetX, int offsetY)
 	{
-		final int sourceX = currentColumn * frameWidth;
-		final int sourceY = currentRow * frameHeight;
+		final int sourceX = (int) (currentColumn * frameWidth);
+		final int sourceY = (int) (currentRow * frameHeight);
 
 		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, getTransparency()));
 		if (isFlippedHorizontal)
@@ -221,6 +221,18 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 
 		currentRow = animationStartRow;
 		currentColumn = animationStartColumn;
+	}
+
+	public void setAnimationIndex(double indexX, double indexY)
+	{
+		currentRow = indexY;
+		currentColumn = indexX;
+	}
+
+	public void setAnimationFrameSize(int width, int height)
+	{
+		frameWidth = width;
+		frameHeight = height;
 	}
 
 	public void setLoopAnimations(int startAnimation, int endAnimation)

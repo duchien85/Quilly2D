@@ -174,7 +174,8 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 	{
 		try
 		{
-			SwingUtilities.invokeAndWait(new Runnable() {
+			SwingUtilities.invokeAndWait(new Runnable()
+			{
 				@Override
 				public void run()
 				{
@@ -194,7 +195,8 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 
 				if (gameState != Q2DGameState.PAUSED)
 				{
-					SwingUtilities.invokeAndWait(new Runnable() {
+					SwingUtilities.invokeAndWait(new Runnable()
+					{
 						@Override
 						public void run()
 						{
@@ -214,7 +216,7 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 		}
 		catch (Exception e)
 		{
-			//TODO errormessage
+			// TODO errormessage
 			e.printStackTrace();
 		}
 	}
@@ -227,6 +229,17 @@ public class Q2DMainPanel extends JFXPanel implements Runnable, PropertyChangeLi
 	public Q2DGameState getGameState()
 	{
 		return gameState;
+	}
+
+	public void setMaxLayers(int numLayers)
+	{
+		for (List<Q2DSprite> sprites : spritesToBeRendered)
+			sprites.clear();
+		spritesToBeRendered.clear();
+
+		maxLayers = numLayers;
+		for (int i = 0; i < maxLayers; ++i)
+			spritesToBeRendered.add(new ArrayList<Q2DSprite>());
 	}
 
 	public int getMaxLayers()

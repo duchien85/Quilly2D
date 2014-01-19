@@ -39,7 +39,6 @@ public class Q2DSound implements Runnable
 	public void stop()
 	{
 		player.stop();
-		player.dispose();
 	}
 
 	public boolean hasStopped()
