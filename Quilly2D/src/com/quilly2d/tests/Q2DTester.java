@@ -81,6 +81,7 @@ public class Q2DTester extends Q2DApplication
 		INSTANCE.createTimer(2, 2, 14, CameraTestTimer.class);
 
 		Q2DSprite cloudFilter = this.createSprite("graphics/filters/clouds.png");
+		cloudFilter.setTransparency(0.5f);
 		cloudFilter.setSize(mapSizeX, mapSizeY);
 	}
 

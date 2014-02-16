@@ -242,7 +242,7 @@ public enum Q2DEditor
 		}
 		else
 		{
-			Q2DTexture texture = new Q2DTexture("" + this.getClass().getResource("/" + filePath));
+			Q2DTexture texture = new Q2DTexture(filePath);
 			textureCache.put(filePath, texture);
 			return texture;
 		}
@@ -250,12 +250,9 @@ public enum Q2DEditor
 
 	private void setAlphaColor(String tileset, int rgb)
 	{
-		if (!textureCache.containsKey(tileset + "_original"))
-			textureCache.put(tileset + "_original", getTexture(tileset));
-
-		Q2DTexture texture = getTexture(tileset + "_original");
-		texture.setAlphaColor(rgb);
-		textureCache.put(tileset, texture);
+		Q2DTexture tex = new Q2DTexture(tileset);
+		tex.setAlphaColor(rgb);
+		textureCache.put(tileset, tex);
 		tilesetAlphaKeys.put(tileset, rgb);
 		world.setTilesetAlphaKey(tileset, rgb);
 		if (splitPane != null)
@@ -264,10 +261,7 @@ public enum Q2DEditor
 
 	public void setAlphaColor(String tileset, int posX, int posY)
 	{
-		if (!textureCache.containsKey(tileset + "_original"))
-			textureCache.put(tileset + "_original", getTexture(tileset));
-
-		Q2DTexture texture = getTexture(tileset + "_original");
+		Q2DTexture texture = getTexture(tileset);
 		setAlphaColor(tileset, texture.getRGB(posX, posY));
 	}
 
