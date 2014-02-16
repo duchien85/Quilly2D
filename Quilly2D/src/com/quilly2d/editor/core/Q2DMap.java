@@ -5,14 +5,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("serial")
 public class Q2DMap implements Serializable
 {
-	private int						numLayers	= 0;
-	private int						width		= 0;
-	private int						height		= 0;
-	private int						tileSize	= 0;
-	private Map<String, Q2DTile>	tiles		= null;
+	private static final long		serialVersionUID	= 1L;
+	private int						numLayers			= 0;
+	private int						width				= 0;
+	private int						height				= 0;
+	private int						tileSize			= 0;
+	private Map<String, Q2DTile>	tiles				= null;
 
 	public Q2DMap(int width, int height, int numLayers, int tileSize)
 	{

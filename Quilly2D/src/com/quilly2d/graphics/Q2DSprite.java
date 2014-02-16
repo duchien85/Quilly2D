@@ -3,8 +3,6 @@ package com.quilly2d.graphics;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.awt.image.PixelGrabber;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
@@ -15,9 +13,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	public static final String		PROPERTY_NAME_WIDTH		= "spriteWidth";
 	public static final String		PROPERTY_NAME_HEIGHT	= "spriteHeight";
 
-	private BufferedImage			img;
-	private final int				imgWidth;
-	private final int				imgHeight;
+	private Q2DTexture				texture;
 	private int						numColumns				= 1;
 	private int						numRows					= 1;
 	private double					animationsPerSecond		= 0;
@@ -40,14 +36,12 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	private PropertyChangeSupport	propChangeSupport		= new PropertyChangeSupport(this);
 	protected boolean				isRemovable				= false;
 
-	public Q2DSprite(BufferedImage img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
+	public Q2DSprite(Q2DTexture texture, int numColumns, int numRows, double animationsPerSecond, int layer)
 	{
-		this.img = img;
+		this.texture = texture;
 
-		imgWidth = width;
-		imgHeight = height;
-		frameWidth = imgWidth / numColumns;
-		frameHeight = imgHeight / numRows;
+		frameWidth = texture.getWidth() / numColumns;
+		frameHeight = texture.getHeight() / numRows;
 		boundaries = new Rectangle(0, 0, frameWidth, frameHeight);
 		this.layer = layer;
 		this.numColumns = numColumns;
@@ -62,7 +56,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		if (isRemovable)
 			return;
 
-		if (img != null && (numRows > 1 || numColumns > 1) && animationsPerSecond > 0 && !isAnimationStopped)
+		if (texture != null && (numRows > 1 || numColumns > 1) && animationsPerSecond > 0 && !isAnimationStopped)
 		{
 			currentAnimation += deltaTime;
 			if (currentAnimation < 0)
@@ -100,9 +94,9 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 
 		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, getTransparency()));
 		if (isFlippedHorizontal)
-			graphics.drawImage(img, boundaries.x - offsetX, boundaries.y - offsetY, boundaries.x + boundaries.width - offsetX, boundaries.y + boundaries.height - offsetY, sourceX + frameWidth, sourceY, sourceX, sourceY + frameHeight, null);
+			texture.paint(graphics, boundaries.x - offsetX, boundaries.y - offsetY, boundaries.width, boundaries.height, sourceX + frameWidth, sourceY, -frameWidth, frameHeight);
 		else
-			graphics.drawImage(img, boundaries.x - offsetX, boundaries.y - offsetY, boundaries.x + boundaries.width - offsetX, boundaries.y + boundaries.height - offsetY, sourceX, sourceY, sourceX + frameWidth, sourceY + frameHeight, null);
+			texture.paint(graphics, boundaries.x - offsetX, boundaries.y - offsetY, boundaries.width, boundaries.height, sourceX, sourceY, frameWidth, frameHeight);
 	}
 
 	public void remove()
@@ -151,14 +145,9 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		return boundaries.getCenterY();
 	}
 
-	public int getImageWidth()
+	public Q2DTexture getTexture()
 	{
-		return imgWidth;
-	}
-
-	public int getImageHeight()
-	{
-		return imgHeight;
+		return texture;
 	}
 
 	public int getWidth()
@@ -184,11 +173,6 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	public int getLayer()
 	{
 		return layer;
-	}
-
-	public BufferedImage getImage()
-	{
-		return img;
 	}
 
 	public void setFlippedHorizontal(boolean flipHorizontal)
@@ -327,12 +311,12 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 	public boolean isColliding(Q2DSprite otherSprite, boolean pixelPerfect)
 	{
 		boolean result = boundaries.intersects(otherSprite.boundaries);
-		if (result && pixelPerfect)
-			return pixelPerfectCollision(otherSprite);
+		/*if (result && pixelPerfect)
+			return pixelPerfectCollision(otherSprite);*/
 		return result;
 	}
 
-	private boolean pixelPerfectCollision(Q2DSprite otherSprite)
+	/*private boolean pixelPerfectCollision(Q2DSprite otherSprite)
 	{
 		int leftX = Math.max(boundaries.x, otherSprite.getX());
 		int rightX = Math.min(boundaries.x + boundaries.width, otherSprite.getX() + otherSprite.getWidth());
@@ -351,7 +335,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		try
 		{
 			// Grab the pixels
-			PixelGrabber pg1 = new PixelGrabber(img, leftX - boundaries.x, topY - boundaries.y, width, height, pixels1, 0, width);
+			PixelGrabber pg1 = new PixelGrabber(texture, leftX - boundaries.x, topY - boundaries.y, width, height, pixels1, 0, width);
 			PixelGrabber pg2 = new PixelGrabber(otherSprite.getImage(), leftX - otherSprite.getX(), topY - otherSprite.getY(), width, height, pixels2, 0, width);
 
 			pg1.grabPixels();
@@ -375,7 +359,7 @@ public class Q2DSprite implements Comparable<Q2DSprite>
 		}
 
 		return false;
-	}
+	}*/
 
 	@Override
 	public int compareTo(Q2DSprite param)

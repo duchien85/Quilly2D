@@ -32,6 +32,7 @@ import javax.swing.event.ChangeListener;
 
 import com.quilly2d.editor.enums.Q2DPencilMode;
 import com.quilly2d.graphics.Q2DSprite;
+import com.quilly2d.graphics.Q2DTexture;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
@@ -318,7 +319,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		Q2DEditor.INSTANCE.setPencilSize(size, size);
 	}
 
-	private void drawMap(Graphics graphics)
+	private void drawMap(Graphics2D graphics)
 	{
 		final int tileSize = Q2DEditor.INSTANCE.getTileSize();
 		int maxY = new Double(Math.ceil(1.0 * Q2DEditor.INSTANCE.getMapHeight() / tileSize)).intValue();
@@ -331,9 +332,9 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 				for (int x = 0; x < maxX; ++x)
 				{
 					if (Q2DEditor.INSTANCE.getCurrentLayer() != -1 && z != Q2DEditor.INSTANCE.getCurrentLayer())
-						((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+						graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 					else
-						((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+						graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
 					Q2DTile mapTile = Q2DEditor.INSTANCE.getMapTile(x, y, z);
 					if (mapTile != null)
@@ -347,20 +348,20 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 							int width = mapTile.getWidth();
 							int height = mapTile.getHeight();
 							Q2DSprite sprite = Q2DEditor.INSTANCE.getAnimation(mapTile.getAnimationSpritePath(), width, height, fps);
-							sprite.paint((Graphics2D) graphics, -drawX, -drawY);
+							sprite.paint(graphics, -drawX, -drawY);
 						}
 						else if (mapTile.getTileIndexX() != -1 && mapTile.getTileIndexY() != -1)
 						{
 							String tileset = Q2DEditor.INSTANCE.getTileSet(mapTile.getTileIndex());
-							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
+							Q2DTexture texture = Q2DEditor.INSTANCE.getTexture(tileset);
 
 							double srcX = mapTile.getTileIndexX() * tileSize;
 							double srcY = mapTile.getTileIndexY() * tileSize;
-							graphics.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) srcX, (int) srcY, (int) (srcX + tileSize), (int) (srcY + tileSize), null);
+							texture.paint(graphics, drawX, drawY, tileSize, tileSize, (int) srcX, (int) srcY, tileSize, tileSize);
 						}
 						if (mapTile.hasCollision())
 						{
-							((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+							graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 							Color currentColor = graphics.getColor();
 							graphics.setColor(new Color(180, 0, 0, 150));
 							graphics.fillRect(drawX, drawY, tileSize, tileSize);
@@ -371,7 +372,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			}
 		}
 
-		((Graphics2D) graphics).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+		graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 	}
 
 	private void drawGrid(Graphics graphics)
@@ -427,8 +428,8 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 								tileset = Q2DEditor.INSTANCE.getTileSet(tileIndex.TILESET_INDEX);
 							else
 								tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
-							BufferedImage img = Q2DEditor.INSTANCE.getImage(tileset);
-							g2.drawImage(img, drawX, drawY, drawX + tileSize, drawY + tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), (int) ((tileIndex.X + 1) * tileSize), (int) ((tileIndex.Y + 1) * tileSize), null);
+							Q2DTexture texture = Q2DEditor.INSTANCE.getTexture(tileset);
+							texture.paint(g2, drawX, drawY, tileSize, tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), tileSize, tileSize);
 						}
 					}
 				}
@@ -506,7 +507,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	{
 		super.paintComponent(graphics);
 		drawPencilPreview(graphics, PENCIL_PREVIEW_OFFSET_X, PENCIL_PREVIEW_OFFSET_Y, PENCIL_PREVIEW_SIZE_X, PENCIL_PREVIEW_SIZE_Y);
-		drawMap(graphics);
+		drawMap((Graphics2D) graphics);
 		if (!btnShowAllLayer.isSelected())
 			drawPencil(graphics);
 		drawGrid(graphics);

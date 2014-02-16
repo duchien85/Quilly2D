@@ -1,8 +1,7 @@
 package com.quilly2d.core;
 
-import java.awt.image.BufferedImage;
-
 import com.quilly2d.graphics.Q2DSprite;
+import com.quilly2d.graphics.Q2DTexture;
 
 public abstract class Q2DEntity extends Q2DSprite
 {
@@ -13,9 +12,9 @@ public abstract class Q2DEntity extends Q2DSprite
 	private double	translationX	= 0;
 	private double	translationY	= 0;
 
-	public Q2DEntity(BufferedImage img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
+	public Q2DEntity(Q2DTexture texture, int numColumns, int numRows, double animationsPerSecond, int layer)
 	{
-		super(img, width, height, numColumns, numRows, animationsPerSecond, layer);
+		super(texture, numColumns, numRows, animationsPerSecond, layer);
 	}
 
 	@Override

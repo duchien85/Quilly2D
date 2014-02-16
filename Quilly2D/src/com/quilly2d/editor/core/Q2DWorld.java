@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("serial")
 public class Q2DWorld implements Serializable
 {
+	private static final long		serialVersionUID	= 1L;
 	private String					name				= null;
 	private String					music				= null;
 	private List<String>			tilesets			= null;

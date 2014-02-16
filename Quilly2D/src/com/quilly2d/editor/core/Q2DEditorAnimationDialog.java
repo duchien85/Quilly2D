@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +24,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.quilly2d.graphics.Q2DSprite;
+import com.quilly2d.graphics.Q2DTexture;
 import com.quilly2d.tools.Q2DEditor;
 
 @SuppressWarnings("serial")
@@ -106,16 +106,14 @@ public class Q2DEditorAnimationDialog extends JDialog
 		addComponent(btnCANCEL, 320 + 15, 330);
 		btnCANCEL.setSize(80, 30);
 
-		btnOK.addActionListener(new ActionListener()
-		{
+		btnOK.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				Q2DEditorAnimationDialog.this.dispose();
 			}
 		});
-		btnCANCEL.addActionListener(new ActionListener()
-		{
+		btnCANCEL.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
@@ -146,8 +144,7 @@ public class Q2DEditorAnimationDialog extends JDialog
 		txt.setText("");
 		txt.setEnabled(false);
 
-		txt.getDocument().addDocumentListener(new DocumentListener()
-		{
+		txt.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent event)
 			{
@@ -195,8 +192,7 @@ public class Q2DEditorAnimationDialog extends JDialog
 				catch (NumberFormatException e)
 				{
 					JOptionPane.showMessageDialog(txt, "You must enter a correct numeric value for", "Wrong numeric value", JOptionPane.ERROR_MESSAGE);
-					SwingUtilities.invokeLater(new Runnable()
-					{
+					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run()
 						{
@@ -216,8 +212,7 @@ public class Q2DEditorAnimationDialog extends JDialog
 			timer.cancel();
 
 		timer = new Timer(true);
-		timer.schedule(new TimerTask()
-		{
+		timer.schedule(new TimerTask() {
 			@Override
 			public void run()
 			{
@@ -234,21 +229,20 @@ public class Q2DEditorAnimationDialog extends JDialog
 
 	private void initSprite(String path)
 	{
-		BufferedImage img = Q2DEditor.INSTANCE.getImage(path);
+		Q2DTexture texture = Q2DEditor.INSTANCE.getTexture(path);
 		int columns = Integer.parseInt(txtAnimationNumColumns.getText());
 		int rows = Integer.parseInt(txtAnimationNumRows.getText());
 		int fps = Integer.parseInt(txtAnimationsPerSecond.getText());
 		int width = Integer.parseInt(txtWidth.getText());
 		int height = Integer.parseInt(txtHeight.getText());
-		sprite = new Q2DSprite(img, img.getWidth(null), img.getHeight(null), columns, rows, fps, 0);
+		sprite = new Q2DSprite(texture, columns, rows, fps, 0);
 		sprite.setSize(width, height);
 	}
 
 	private JButton createBrowseButton()
 	{
 		final JButton btn = new JButton("Browse");
-		btn.addActionListener(new ActionListener()
-		{
+		btn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{

@@ -4,10 +4,6 @@ import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
@@ -16,11 +12,6 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.FilteredImageSource;
-import java.awt.image.ImageFilter;
-import java.awt.image.ImageProducer;
-import java.awt.image.RGBImageFilter;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Constructor;
@@ -38,17 +29,18 @@ import com.quilly2d.editor.core.Q2DWorld;
 import com.quilly2d.enums.Q2DGameState;
 import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.graphics.Q2DText;
+import com.quilly2d.graphics.Q2DTexture;
 import com.quilly2d.sound.Q2DSound;
 
 public abstract class Q2DApplication
 {
-	private JFrame						frame			= null;
-	private Q2DMainPanel				mainPanel		= null;
-	private Map<String, BufferedImage>	imgCache		= new HashMap<String, BufferedImage>();
-	private Map<String, Font>			fontCache		= new HashMap<String, Font>();
-	private boolean						isFullScreen	= false;
-	private int							mouseX			= 0;
-	private int							mouseY			= 0;
+	private JFrame					frame			= null;
+	private Q2DMainPanel			mainPanel		= null;
+	private Map<String, Q2DTexture>	textureCache	= new HashMap<String, Q2DTexture>();
+	private Map<String, Font>		fontCache		= new HashMap<String, Font>();
+	private boolean					isFullScreen	= false;
+	private int						mouseX			= 0;
+	private int						mouseY			= 0;
 
 	public Q2DApplication(String windowTitle, int width, int height, boolean fullscreen, int fps, int numLayers, boolean useTrippleBuffering)
 	{
@@ -139,49 +131,29 @@ public abstract class Q2DApplication
 
 	public void stopGame()
 	{
+		//TODO register window close listener and execute this logic always when the window is closing
 		mainPanel.setGameState(Q2DGameState.STOPPED);
 		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 	}
 
-	private BufferedImage getOptimizedImage(Image img)
+	private Q2DTexture getTexture(String filePath)
 	{
-		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-
-		// check if image is already optimized
-		if (img instanceof BufferedImage && ((BufferedImage) img).getColorModel().equals(gfx_config.getColorModel()))
+		if (textureCache.containsKey(filePath))
 		{
-			return (BufferedImage) img;
+			return textureCache.get(filePath);
 		}
 		else
 		{
-			BufferedImage new_image = gfx_config.createCompatibleImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g2 = (Graphics2D) new_image.getGraphics();
-			g2.drawImage(img, 0, 0, null);
-			g2.dispose();
-
-			return new_image;
-		}
-	}
-
-	private BufferedImage getImage(String filePath)
-	{
-		if (imgCache.containsKey(filePath))
-		{
-			return imgCache.get(filePath);
-		}
-		else
-		{
-			ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
-			BufferedImage img = getOptimizedImage(icon.getImage());
-			imgCache.put(filePath, img);
-			return img;
+			Q2DTexture texture = new Q2DTexture(filePath);
+			textureCache.put(filePath, texture);
+			return texture;
 		}
 	}
 
 	public Q2DSprite createSprite(String filePath, int numColumns, int numRows, double animationsPerSecond, int layer)
 	{
-		BufferedImage img = getImage(filePath);
-		Q2DSprite result = new Q2DSprite(img, img.getWidth(null), img.getHeight(null), numColumns, numRows, animationsPerSecond, layer);
+		Q2DTexture texture = getTexture(filePath);
+		Q2DSprite result = new Q2DSprite(texture, numColumns, numRows, animationsPerSecond, layer);
 		mainPanel.addSprite(result, layer);
 
 		return result;
@@ -253,9 +225,9 @@ public abstract class Q2DApplication
 	{
 		try
 		{
-			BufferedImage img = getImage(filePath);
-			Constructor<? extends Q2DEntity> constructor = type.getConstructor(BufferedImage.class, int.class, int.class, int.class, int.class, double.class, int.class);
-			Q2DEntity newInstance = constructor.newInstance(img, img.getWidth(null), img.getHeight(null), numColumns, numRows, animationsPerSecond, layer);
+			Q2DTexture texture = getTexture(filePath);
+			Constructor<? extends Q2DEntity> constructor = type.getConstructor(Q2DTexture.class, int.class, int.class, double.class, int.class);
+			Q2DEntity newInstance = constructor.newInstance(texture, numColumns, numRows, animationsPerSecond, layer);
 
 			mainPanel.addSprite(newInstance, layer);
 			return newInstance;
@@ -333,8 +305,7 @@ public abstract class Q2DApplication
 	private void addKeyEventDispatcher()
 	{
 		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		manager.addKeyEventDispatcher(new KeyEventDispatcher()
-		{
+		manager.addKeyEventDispatcher(new KeyEventDispatcher() {
 			@Override
 			public boolean dispatchKeyEvent(KeyEvent event)
 			{
@@ -350,8 +321,7 @@ public abstract class Q2DApplication
 
 	private void addMouseListener()
 	{
-		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
-		{
+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
 
 			@Override
 			public void eventDispatched(AWTEvent event)
@@ -366,8 +336,7 @@ public abstract class Q2DApplication
 				}
 			}
 		}, AWTEvent.MOUSE_EVENT_MASK);
-		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener()
-		{
+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
 
 			@Override
 			public void eventDispatched(AWTEvent event)
@@ -411,27 +380,6 @@ public abstract class Q2DApplication
 		return mainPanel.getCameraY();
 	}
 
-	private BufferedImage makeColorTransparent(BufferedImage im, final int alphaRGB)
-	{
-		ImageFilter filter = new RGBImageFilter()
-		{
-			public int	markerRGB	= alphaRGB | 0xFF000000;
-
-			public final int filterRGB(int x, int y, int rgb)
-			{
-				if ((rgb | 0xFF000000) == markerRGB)
-					// make pixel of specified color transparent
-					return 0x00FFFFFF & rgb;
-				else
-					return rgb;
-			}
-		};
-
-		ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
-		Image alphaImg = Toolkit.getDefaultToolkit().createImage(ip);
-		return getOptimizedImage(alphaImg);
-	}
-
 	public void loadQ2DWorld(String filePath)
 	{
 		try
@@ -450,16 +398,20 @@ public abstract class Q2DApplication
 			Collection<Q2DTile> tiles = loadedWorld.getMap().getTiles();
 			Iterator<Q2DTile> iterator = tiles.iterator();
 			final int tileSize = loadedWorld.getMap().getTileSize();
+			final int max = tiles.size();
+			int current = 0;
 			while (iterator.hasNext())
 			{
+				++current;
+				System.out.println("Processing: " + current + " / " + max);
 				Q2DTile tile = iterator.next();
-				String tileset = loadedWorld.getTileset(tile.getTileIndex());
 				Q2DSprite sprite = null;
 				if (tile.hasAnimation())
 					// TODO test animation sprites
 					sprite = createSprite(tile.getAnimationSpritePath(), tile.getNumColumns(), tile.getNumRows(), tile.getAnimationsPerSecond(), tile.getLayer());
 				else
 				{
+					String tileset = loadedWorld.getTileset(tile.getTileIndex());
 					sprite = createSprite(tileset, loadedWorld.getNumTilesetColumns(tile.getTileIndex()), loadedWorld.getNumTilesetRows(tile.getTileIndex()), 0.0, tile.getLayer());
 					sprite.stopAnimation();
 					sprite.setAnimationIndex(tile.getTileIndexX(), tile.getTileIndexY());
@@ -475,7 +427,7 @@ public abstract class Q2DApplication
 			{
 				// TODO set alphakey for tilesets
 				if (loadedWorld.getTilesetAlphaKey(tileset) != null)
-					makeColorTransparent(imgCache.get(tileset), loadedWorld.getTilesetAlphaKey(tileset));
+					textureCache.get(tileset).setAlphaColor(loadedWorld.getTilesetAlphaKey(tileset));
 				++i;
 				tileset = loadedWorld.getTileset(i);
 			}

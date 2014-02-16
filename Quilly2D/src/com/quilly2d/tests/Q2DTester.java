@@ -3,7 +3,6 @@ package com.quilly2d.tests;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +11,7 @@ import com.quilly2d.core.Q2DEntity;
 import com.quilly2d.core.Q2DTimer;
 import com.quilly2d.graphics.Q2DSprite;
 import com.quilly2d.graphics.Q2DText;
+import com.quilly2d.graphics.Q2DTexture;
 import com.quilly2d.sound.Q2DSound;
 
 public class Q2DTester extends Q2DApplication
@@ -89,57 +89,57 @@ public class Q2DTester extends Q2DApplication
 	{
 		switch (keyCode)
 		{
-			case KeyEvent.VK_RIGHT:
-				isRightPressed = true;
-				break;
-			case KeyEvent.VK_LEFT:
-				isLeftPressed = true;
-				break;
-			case KeyEvent.VK_DOWN:
-				isDownPressed = true;
-				break;
-			case KeyEvent.VK_UP:
-				isUpPressed = true;
-				break;
-			case KeyEvent.VK_E:
-				if (!isPaused)
-					music.pause();
-				break;
-			case KeyEvent.VK_R:
-				if (!isPaused)
-					music.play();
-				break;
-			case KeyEvent.VK_C:
-				this.setCameraFocusOnEntity(gameEntity, false);
-				break;
-			case KeyEvent.VK_O:
-				this.showCursor(true);
-				break;
-			case KeyEvent.VK_L:
-				this.showCursor(false);
-				break;
-			case KeyEvent.VK_NUMPAD8:
-				this.setCameraLocation(this.getCameraX(), this.getCameraY() - 10);
-				break;
-			case KeyEvent.VK_NUMPAD2:
-				this.setCameraLocation(this.getCameraX(), this.getCameraY() + 10);
-				break;
-			case KeyEvent.VK_NUMPAD4:
-				this.setCameraLocation(this.getCameraX() - 10, this.getCameraY());
-				break;
-			case KeyEvent.VK_NUMPAD6:
-				this.setCameraLocation(this.getCameraX() + 10, this.getCameraY());
-				break;
-			case KeyEvent.VK_ADD:
-				FireSpell fireSpell = (FireSpell) this.createEntity("graphics/effects/fire_cast.png", 5, 1, 6, FireSpell.class);
-				fireSpell.setCaster(gameEntity);
-				break;
-			case KeyEvent.VK_PAUSE:
-				isPaused = !isPaused;
-				this.pauseGame(isPaused);
-				break;
-			case KeyEvent.VK_ESCAPE:
-				this.stopGame();
+		case KeyEvent.VK_RIGHT:
+			isRightPressed = true;
+			break;
+		case KeyEvent.VK_LEFT:
+			isLeftPressed = true;
+			break;
+		case KeyEvent.VK_DOWN:
+			isDownPressed = true;
+			break;
+		case KeyEvent.VK_UP:
+			isUpPressed = true;
+			break;
+		case KeyEvent.VK_E:
+			if (!isPaused)
+				music.pause();
+			break;
+		case KeyEvent.VK_R:
+			if (!isPaused)
+				music.play();
+			break;
+		case KeyEvent.VK_C:
+			this.setCameraFocusOnEntity(gameEntity, false);
+			break;
+		case KeyEvent.VK_O:
+			this.showCursor(true);
+			break;
+		case KeyEvent.VK_L:
+			this.showCursor(false);
+			break;
+		case KeyEvent.VK_NUMPAD8:
+			this.setCameraLocation(this.getCameraX(), this.getCameraY() - 10);
+			break;
+		case KeyEvent.VK_NUMPAD2:
+			this.setCameraLocation(this.getCameraX(), this.getCameraY() + 10);
+			break;
+		case KeyEvent.VK_NUMPAD4:
+			this.setCameraLocation(this.getCameraX() - 10, this.getCameraY());
+			break;
+		case KeyEvent.VK_NUMPAD6:
+			this.setCameraLocation(this.getCameraX() + 10, this.getCameraY());
+			break;
+		case KeyEvent.VK_ADD:
+			FireSpell fireSpell = (FireSpell) this.createEntity("graphics/effects/fire_cast.png", 5, 1, 6, FireSpell.class);
+			fireSpell.setCaster(gameEntity);
+			break;
+		case KeyEvent.VK_PAUSE:
+			isPaused = !isPaused;
+			this.pauseGame(isPaused);
+			break;
+		case KeyEvent.VK_ESCAPE:
+			this.stopGame();
 		}
 
 		if (!isPaused)
@@ -151,18 +151,18 @@ public class Q2DTester extends Q2DApplication
 	{
 		switch (keyCode)
 		{
-			case KeyEvent.VK_RIGHT:
-				isRightPressed = false;
-				break;
-			case KeyEvent.VK_LEFT:
-				isLeftPressed = false;
-				break;
-			case KeyEvent.VK_DOWN:
-				isDownPressed = false;
-				break;
-			case KeyEvent.VK_UP:
-				isUpPressed = false;
-				break;
+		case KeyEvent.VK_RIGHT:
+			isRightPressed = false;
+			break;
+		case KeyEvent.VK_LEFT:
+			isLeftPressed = false;
+			break;
+		case KeyEvent.VK_DOWN:
+			isDownPressed = false;
+			break;
+		case KeyEvent.VK_UP:
+			isUpPressed = false;
+			break;
 		}
 
 		if (!isPaused)
@@ -226,9 +226,9 @@ public class Q2DTester extends Q2DApplication
 		private int	oldX	= 0;
 		private int	oldY	= 0;
 
-		public MageEntity(BufferedImage img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
+		public MageEntity(Q2DTexture texture, int numColumns, int numRows, double animationsPerSecond, int layer)
 		{
-			super(img, width, height, numColumns, numRows, animationsPerSecond, layer);
+			super(texture, numColumns, numRows, animationsPerSecond, layer);
 			setSize(64, 64);
 			setAnimation(8);
 			stopAnimation();
@@ -301,9 +301,9 @@ public class Q2DTester extends Q2DApplication
 	public static class FireSpell extends Q2DEntity
 	{
 
-		public FireSpell(BufferedImage img, int width, int height, int numColumns, int numRows, double animationsPerSecond, int layer)
+		public FireSpell(Q2DTexture texture, int numColumns, int numRows, double animationsPerSecond, int layer)
 		{
-			super(img, width, height, numColumns, numRows, animationsPerSecond, layer);
+			super(texture, numColumns, numRows, animationsPerSecond, layer);
 		}
 
 		public void setCaster(MageEntity caster)

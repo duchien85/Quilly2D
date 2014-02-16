@@ -2,24 +2,24 @@ package com.quilly2d.editor.core;
 
 import java.io.Serializable;
 
-@SuppressWarnings("serial")
 public class Q2DTile implements Serializable
 {
-	private int		indexX				= 0;
-	private int		indexY				= 0;
-	private int		layer				= 0;
-	private int		tileIndex			= -1;
-	private double	tileIndexX			= -1;
-	private double	tileIndexY			= -1;
-	private boolean	hasCollision		= false;
-	private boolean	hasAnimation		= false;
+	private static final long	serialVersionUID	= 1L;
+	private int					indexX				= 0;
+	private int					indexY				= 0;
+	private int					layer				= 0;
+	private int					tileIndex			= -1;
+	private double				tileIndexX			= -1;
+	private double				tileIndexY			= -1;
+	private boolean				hasCollision		= false;
+	private boolean				hasAnimation		= false;
 	// attributes below are only used for animated tiles
-	private String	animationSpritePath	= null;
-	private int		animationsPerSecond	= 0;
-	private int		width				= 0;
-	private int		height				= 0;
-	private int		numColumns			= 0;
-	private int		numRows				= 0;
+	private String				animationSpritePath	= null;
+	private int					animationsPerSecond	= 0;
+	private int					width				= 0;
+	private int					height				= 0;
+	private int					numColumns			= 0;
+	private int					numRows				= 0;
 
 	public Q2DTile()
 	{
