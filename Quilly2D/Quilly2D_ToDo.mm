@@ -11,11 +11,26 @@
 <node CREATED="1392538670159" ID="ID_1059798196" MODIFIED="1392568469592" TEXT="automatically optimizes the bufferedimage">
 <icon BUILTIN="button_ok"/>
 </node>
-<node CREATED="1392538679228" ID="ID_509128477" MODIFIED="1392538691674" TEXT="allow creation of &quot;empty&quot; texture to paint on it">
-<node CREATED="1392538692483" ID="ID_1496076397" MODIFIED="1392538703294" TEXT="f.e. each layer of the editor world can be one texture"/>
+<node CREATED="1392538679228" ID="ID_509128477" MODIFIED="1394563948261" TEXT="allow creation of &quot;empty&quot; texture to paint on it">
+<icon BUILTIN="stop-sign"/>
+<node CREATED="1392538692483" ID="ID_1496076397" MODIFIED="1394563953607" TEXT="f.e. each layer of the editor world can be one texture">
+<node CREATED="1394563922987" ID="ID_1038682016" MODIFIED="1394563935940" TEXT="not a good idea since bufferedimages require a lot of memoryspace"/>
 </node>
-<node CREATED="1392538705646" ID="ID_1865241027" MODIFIED="1392538720641" TEXT="optimize rendering that only a portion of the texture is rendered">
+<node CREATED="1394563968996" ID="ID_69388823" MODIFIED="1394563981225" TEXT="better solution">
+<icon BUILTIN="idea"/>
+<node CREATED="1394563984184" ID="ID_1793779456" MODIFIED="1394563989367" TEXT="use one texture per tileset"/>
+<node CREATED="1394563992477" ID="ID_1947305113" MODIFIED="1394564006685" TEXT="draw directly from those images to the panel"/>
+<node CREATED="1394564035071" ID="ID_1403999083" MODIFIED="1394564068312" TEXT="optimize pencil preview drawing to remove the creation of the empty q2dtexture"/>
+<node CREATED="1394564071004" ID="ID_110462005" MODIFIED="1394564091206" TEXT="remove the functionality to create empty q2dtextures and to paint on empty q2dtextures"/>
+</node>
+</node>
+<node CREATED="1392538705646" ID="ID_1865241027" MODIFIED="1394564112103" TEXT="optimize rendering that only a portion of the texture is rendered">
+<icon BUILTIN="stop-sign"/>
 <node CREATED="1392538721316" ID="ID_1261890099" MODIFIED="1392538750281" TEXT="f.e. if we have a 10000x10000 texture but the camera can only show 800x600 pixel then only render that section and not the entire texture"/>
+<node CREATED="1394564115650" ID="ID_1203372040" MODIFIED="1394564130169" TEXT="we will not have huge textures because of memory problem for bufferedimages">
+<icon BUILTIN="idea"/>
+<node CREATED="1394564158401" ID="ID_1566135401" MODIFIED="1394564187829" TEXT="we still need to optimize the map editor rendering to only render the mapportions that are visible to the user instead of the entire map"/>
+</node>
 </node>
 </node>
 <node CREATED="1392538807972" ID="ID_1450470459" MODIFIED="1392538820666" POSITION="left" TEXT="General optimization">
@@ -23,9 +38,13 @@
 <node CREATED="1392539041599" ID="ID_900856777" MODIFIED="1392539054695" TEXT="try to integrate Q2DMainPanel to the Q2DEditorMapPanel"/>
 </node>
 <node CREATED="1392538846402" ID="ID_1282478077" MODIFIED="1392538871830" TEXT="Animated Sprites should no longer be animated when the &quot;testapplication&quot; is started"/>
-<node CREATED="1392538875107" ID="ID_1864335427" MODIFIED="1392538895981" TEXT="Sond &quot;Thread&quot; of the FXPanel should be &quot;disposed&quot; when the testapplication is closed"/>
-<node CREATED="1392538973958" ID="ID_489916454" MODIFIED="1392538992677" TEXT="All non-animated sprites should be rendered on a single Q2DTexture">
+<node CREATED="1392538875107" ID="ID_1864335427" MODIFIED="1394564225978" TEXT="Sound &quot;Thread&quot; of the FXPanel should be &quot;disposed&quot; when the testapplication is closed"/>
+<node CREATED="1392538973958" ID="ID_489916454" MODIFIED="1394564236425" TEXT="All non-animated sprites should be rendered on a single Q2DTexture">
+<icon BUILTIN="stop-sign"/>
 <node CREATED="1392538993351" ID="ID_610379371" MODIFIED="1392538997166" TEXT="one texture per layer"/>
+<node CREATED="1394564245321" ID="ID_1256024065" MODIFIED="1394564272414" TEXT="that approach had memory issues with huge buffered images -&gt; forget about this idea">
+<icon BUILTIN="idea"/>
+</node>
 </node>
 <node CREATED="1392539070189" ID="ID_594548472" MODIFIED="1392539081363" TEXT="java.util.map loops">
 <node CREATED="1392539082458" ID="ID_1774725428" MODIFIED="1392539098216" TEXT="iterate over values or keys or Map.entry"/>
