@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -397,7 +396,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 		}
 	}
 
-	private void drawPencilPreview(Graphics graphics, int offsetX, int offsetY, int previewSizeX, int previewSizeY)
+	private void drawPencilPreview(Graphics2D graphics, int offsetX, int offsetY, int previewSizeX, int previewSizeY)
 	{
 		int sizeX = Q2DEditor.INSTANCE.getPencilSizeX();
 		int sizeY = Q2DEditor.INSTANCE.getPencilSizeY();
@@ -406,14 +405,12 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 			if (Q2DEditor.INSTANCE.getPencilMode() == Q2DPencilMode.ANIMATION)
 			{
 				Q2DSprite animation = Q2DEditor.INSTANCE.getAnimation(Q2DEditor.INSTANCE.getCurrentAnimationPath(), Q2DEditor.INSTANCE.getCurrentAnimationWidth(), Q2DEditor.INSTANCE.getCurrentAnimationHeight(), Q2DEditor.INSTANCE.getCurrentAnimationFPS());
-				animation.paint((Graphics2D) graphics, -offsetX, -offsetY);
+				animation.paint(graphics, -offsetX, -offsetY);
 			}
 			else
 			{
 				int tileSize = Q2DEditor.INSTANCE.getTileSize();
-				BufferedImage pencilImg = new BufferedImage(sizeX * tileSize, sizeY * tileSize, BufferedImage.TYPE_INT_ARGB);
-				Graphics2D g2 = pencilImg.createGraphics();
-				g2.setColor(Color.BLACK);
+				Q2DTexture pencilTex = new Q2DTexture(sizeX * tileSize, sizeY * tileSize);
 				for (int x = 0; x < sizeX; ++x)
 				{
 					for (int y = 0; y < sizeY; ++y)
@@ -429,13 +426,11 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 							else
 								tileset = Q2DEditor.INSTANCE.getTileSet(Q2DEditor.INSTANCE.getCurrentTileSetIndex());
 							Q2DTexture texture = Q2DEditor.INSTANCE.getTexture(tileset);
-							texture.paint(g2, drawX, drawY, tileSize, tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), tileSize, tileSize);
+							pencilTex.paint(texture, drawX, drawY, tileSize, tileSize, (int) (tileIndex.X * tileSize), (int) (tileIndex.Y * tileSize), tileSize, tileSize);
 						}
 					}
 				}
-
-				g2.dispose();
-				graphics.drawImage(pencilImg, offsetX, offsetY, Math.min(previewSizeX, pencilImg.getWidth()), Math.min(previewSizeY, pencilImg.getHeight()), null);
+				pencilTex.paint(graphics, offsetX, offsetY, Math.min(previewSizeX, pencilTex.getWidth()), Math.min(previewSizeY, pencilTex.getHeight()));
 			}
 
 		}
@@ -506,7 +501,7 @@ public class Q2DEditorMapPanel extends JPanel implements MouseListener, MouseMot
 	public void paintComponent(Graphics graphics)
 	{
 		super.paintComponent(graphics);
-		drawPencilPreview(graphics, PENCIL_PREVIEW_OFFSET_X, PENCIL_PREVIEW_OFFSET_Y, PENCIL_PREVIEW_SIZE_X, PENCIL_PREVIEW_SIZE_Y);
+		drawPencilPreview((Graphics2D) graphics, PENCIL_PREVIEW_OFFSET_X, PENCIL_PREVIEW_OFFSET_Y, PENCIL_PREVIEW_SIZE_X, PENCIL_PREVIEW_SIZE_Y);
 		drawMap((Graphics2D) graphics);
 		if (!btnShowAllLayer.isSelected())
 			drawPencil(graphics);

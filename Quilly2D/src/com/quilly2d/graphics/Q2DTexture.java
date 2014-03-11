@@ -1,5 +1,6 @@
 package com.quilly2d.graphics;
 
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
@@ -21,6 +22,12 @@ public class Q2DTexture
 	{
 		ImageIcon icon = new ImageIcon(this.getClass().getResource("/" + filePath));
 		image = getOptimizedImage(icon.getImage());
+	}
+
+	public Q2DTexture(int width, int height)
+	{
+		GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+		image = gfx_config.createCompatibleImage(width, height, BufferedImage.TYPE_INT_ARGB);
 	}
 
 	public void setAlphaColor(final int alphaRGB)
@@ -60,6 +67,18 @@ public class Q2DTexture
 	public void paint(Graphics2D graphics, int x, int y, int width, int height, int frameX, int frameY, int frameWidth, int frameHeight)
 	{
 		graphics.drawImage(image, x, y, x + width, y + height, frameX, frameY, frameX + frameWidth, frameY + frameHeight, null);
+	}
+
+	public void paint(Graphics2D graphics, int x, int y, int width, int height)
+	{
+		graphics.drawImage(image, x, y, width, height, null);
+	}
+
+	public void paint(Q2DTexture source, int x, int y, int width, int height, int frameX, int frameY, int frameWidth, int frameHeight)
+	{
+		Graphics graphics = image.getGraphics();
+		graphics.drawImage(source.image, x, y, x + width, y + height, frameX, frameY, frameX + frameWidth, frameY + frameHeight, null);
+		graphics.dispose();
 	}
 
 	private BufferedImage getOptimizedImage(Image img)
